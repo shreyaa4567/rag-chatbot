@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+
+# Crawled content
+data/*.txt
+
+# Chroma vector database
+chroma_db/
+
+# Generated logs
+logs/*.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
