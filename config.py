@@ -9,7 +9,7 @@ DELAY_SECONDS    = 1.0
 REQUEST_TIMEOUT  = 10
 
 # ─── OLLAMA MODELS ────────────────────────────────────────────────────────────
-LLM_MODEL        = "qwen3:8b"
+LLM_MODEL = "gemma3:4b"
 EMBED_MODEL      = "nomic-embed-text"
 OLLAMA_HOST      = "http://127.0.0.1:11434"
 
