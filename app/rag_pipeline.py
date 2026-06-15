@@ -100,7 +100,7 @@ def load_vectorstore():
 
 # ─── STEP 5: SEARCH ───────────────────────────────────────────────────────────
 
-def search(query, collection, k=8):
+def search(query, collection, k=3):
     query_embedding = get_embedding(query)
     results = collection.query(
         query_embeddings = [query_embedding],
