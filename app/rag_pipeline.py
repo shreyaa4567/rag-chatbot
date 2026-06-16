@@ -51,8 +51,8 @@ def load_documents():
 
 def chunk_documents(documents, metadata):
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size    = 500,
-        chunk_overlap = 50,
+        chunk_size    = 1000,
+        chunk_overlap = 100,
     )
     all_chunks   = []
     all_metadata = []

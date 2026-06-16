@@ -1,10 +1,10 @@
 # config.py
 
 # ─── TARGET WEBSITE ───────────────────────────────────────────────────────────
-TARGET_URL = "http://quotes.toscrape.com/"
+TARGET_URL = "https://home.iitd.ac.in/"
 
 # ─── CRAWLER SETTINGS ─────────────────────────────────────────────────────────
-MAX_PAGES        = 200
+MAX_PAGES        = 50
 DELAY_SECONDS    = 1.0
 REQUEST_TIMEOUT  = 10
 

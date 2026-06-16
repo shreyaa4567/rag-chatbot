@@ -1,932 +1,302 @@
 [
   {
-    "url": "http://quotes.toscrape.com/",
+    "url": "https://home.iitd.ac.in/",
     "title": "No Title",
     "filename": "homepage.txt",
-    "crawl_time": "2026-06-14 13:07:06"
+    "crawl_time": "2026-06-16 10:36:49"
   },
   {
-    "url": "http://quotes.toscrape.com/login",
+    "url": "https://home.iitd.ac.in/kksearch",
     "title": "No Title",
-    "filename": "login.txt",
-    "crawl_time": "2026-06-14 13:07:08"
+    "filename": "kksearch.txt",
+    "crawl_time": "2026-06-16 10:36:51"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Albert-Einstein",
+    "url": "https://home.iitd.ac.in/jobs-iitd/index.php",
     "title": "No Title",
-    "filename": "author_Albert-Einstein.txt",
-    "crawl_time": "2026-06-14 13:07:10"
+    "filename": "jobs-iitd_index.php.txt",
+    "crawl_time": "2026-06-16 10:36:54"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/change/page/1/",
+    "url": "https://home.iitd.ac.in/tenders.php",
     "title": "No Title",
-    "filename": "tag_change_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:12"
+    "filename": "tenders.php.txt",
+    "crawl_time": "2026-06-16 10:36:59"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/deep-thoughts/page/1/",
+    "url": "https://home.iitd.ac.in/icollect/epay/index.php",
     "title": "No Title",
-    "filename": "tag_deep-thoughts_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:14"
+    "filename": "icollect_epay_index.php.txt",
+    "crawl_time": "2026-06-16 10:37:01"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/thinking/page/1/",
+    "url": "https://home.iitd.ac.in/compliance.php#icc",
     "title": "No Title",
-    "filename": "tag_thinking_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:15"
+    "filename": "compliance.php.txt",
+    "crawl_time": "2026-06-16 10:37:07"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/world/page/1/",
+    "url": "https://home.iitd.ac.in/index-hindi.php",
     "title": "No Title",
-    "filename": "tag_world_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:17"
+    "filename": "index-hindi.php.txt",
+    "crawl_time": "2026-06-16 10:37:17"
   },
   {
-    "url": "http://quotes.toscrape.com/author/J-K-Rowling",
+    "url": "https://webmail.iitd.ac.in/roundcube/",
     "title": "No Title",
-    "filename": "author_J-K-Rowling.txt",
-    "crawl_time": "2026-06-14 13:07:19"
+    "filename": "roundcube.txt",
+    "crawl_time": "2026-06-16 10:37:21"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/abilities/page/1/",
+    "url": "https://home.iitd.ac.in/index.php",
     "title": "No Title",
-    "filename": "tag_abilities_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:21"
+    "filename": "index.php.txt",
+    "crawl_time": "2026-06-16 10:37:24"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/choices/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=707&in_sections=News",
     "title": "No Title",
-    "filename": "tag_choices_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:23"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:37:27"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/inspirational/page/1/",
+    "url": "https://home.iitd.ac.in/about.php",
     "title": "No Title",
-    "filename": "tag_inspirational_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:25"
+    "filename": "about.php.txt",
+    "crawl_time": "2026-06-16 10:37:30"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/life/page/1/",
+    "url": "https://home.iitd.ac.in/#research",
     "title": "No Title",
-    "filename": "tag_life_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:27"
+    "filename": "homepage.txt",
+    "crawl_time": "2026-06-16 10:37:32"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/live/page/1/",
+    "url": "https://home.iitd.ac.in/#startups",
     "title": "No Title",
-    "filename": "tag_live_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:29"
+    "filename": "homepage.txt",
+    "crawl_time": "2026-06-16 10:37:35"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/miracle/page/1/",
+    "url": "https://home.iitd.ac.in/#news",
     "title": "No Title",
-    "filename": "tag_miracle_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:31"
+    "filename": "homepage.txt",
+    "crawl_time": "2026-06-16 10:37:38"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/miracles/page/1/",
+    "url": "https://home.iitd.ac.in/pg-admissions.php#hostel",
     "title": "No Title",
-    "filename": "tag_miracles_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:32"
+    "filename": "pg-admissions.php.txt",
+    "crawl_time": "2026-06-16 10:37:55"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Jane-Austen",
+    "url": "https://home.iitd.ac.in/departments.php",
     "title": "No Title",
-    "filename": "author_Jane-Austen.txt",
-    "crawl_time": "2026-06-14 13:07:35"
+    "filename": "departments.php.txt",
+    "crawl_time": "2026-06-16 10:37:57"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/aliteracy/page/1/",
+    "url": "https://home.iitd.ac.in/centres.php",
     "title": "No Title",
-    "filename": "tag_aliteracy_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:36"
+    "filename": "centres.php.txt",
+    "crawl_time": "2026-06-16 10:38:00"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/books/page/1/",
+    "url": "https://home.iitd.ac.in/schools.php",
     "title": "No Title",
-    "filename": "tag_books_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:38"
+    "filename": "schools.php.txt",
+    "crawl_time": "2026-06-16 10:38:03"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/classic/page/1/",
+    "url": "https://home.iitd.ac.in/centres-of-excellence.php",
     "title": "No Title",
-    "filename": "tag_classic_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:40"
+    "filename": "centres-of-excellence.php.txt",
+    "crawl_time": "2026-06-16 10:38:05"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/humor/page/1/",
+    "url": "https://home.iitd.ac.in/startup-all.php",
     "title": "No Title",
-    "filename": "tag_humor_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:42"
+    "filename": "startup-all.php.txt",
+    "crawl_time": "2026-06-16 10:38:08"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Marilyn-Monroe",
+    "url": "https://home.iitd.ac.in/show.php?id=11&in_sections=Startups",
     "title": "No Title",
-    "filename": "author_Marilyn-Monroe.txt",
-    "crawl_time": "2026-06-14 13:07:45"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:10"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/be-yourself/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=10&in_sections=Startups",
     "title": "No Title",
-    "filename": "tag_be-yourself_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:46"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:12"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/adulthood/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=9&in_sections=Startups",
     "title": "No Title",
-    "filename": "tag_adulthood_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:48"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:15"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/success/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=8&in_sections=Startups",
     "title": "No Title",
-    "filename": "tag_success_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:50"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:17"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/value/page/1/",
+    "url": "https://home.iitd.ac.in/news-escooter.php",
     "title": "No Title",
-    "filename": "tag_value_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:52"
+    "filename": "news-escooter.php.txt",
+    "crawl_time": "2026-06-16 10:38:19"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Andre-Gide",
+    "url": "https://home.iitd.ac.in/press-antim.php",
     "title": "No Title",
-    "filename": "author_Andre-Gide.txt",
-    "crawl_time": "2026-06-14 13:07:54"
+    "filename": "press-antim.php.txt",
+    "crawl_time": "2026-06-16 10:38:22"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/love/page/1/",
+    "url": "https://home.iitd.ac.in/startup-etex.php",
     "title": "No Title",
-    "filename": "tag_love_page_1.txt",
-    "crawl_time": "2026-06-14 13:07:56"
+    "filename": "startup-etex.php.txt",
+    "crawl_time": "2026-06-16 10:38:25"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Thomas-A-Edison",
+    "url": "https://home.iitd.ac.in/startup-roposo.php",
     "title": "No Title",
-    "filename": "author_Thomas-A-Edison.txt",
-    "crawl_time": "2026-06-14 13:07:58"
+    "filename": "startup-roposo.php.txt",
+    "crawl_time": "2026-06-16 10:38:28"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/edison/page/1/",
+    "url": "https://home.iitd.ac.in/news-all.php",
     "title": "No Title",
-    "filename": "tag_edison_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:00"
+    "filename": "news-all.php.txt",
+    "crawl_time": "2026-06-16 10:38:32"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/failure/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=890&in_sections=News",
     "title": "No Title",
-    "filename": "tag_failure_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:02"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:35"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/paraphrased/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=889&in_sections=News",
     "title": "No Title",
-    "filename": "tag_paraphrased_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:03"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:38"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Eleanor-Roosevelt",
+    "url": "https://home.iitd.ac.in/show.php?id=887&in_sections=News",
     "title": "No Title",
-    "filename": "author_Eleanor-Roosevelt.txt",
-    "crawl_time": "2026-06-14 13:08:06"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:41"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/misattributed-eleanor-roosevelt/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=886&in_sections=News",
     "title": "No Title",
-    "filename": "tag_misattributed-eleanor-roosevelt_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:07"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:44"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Steve-Martin",
+    "url": "https://home.iitd.ac.in/events-all.php",
     "title": "No Title",
-    "filename": "author_Steve-Martin.txt",
-    "crawl_time": "2026-06-14 13:08:09"
+    "filename": "events-all.php.txt",
+    "crawl_time": "2026-06-16 10:38:47"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/obvious/page/1/",
+    "url": "https://home.iitd.ac.in/research-all.php",
     "title": "No Title",
-    "filename": "tag_obvious_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:11"
+    "filename": "research-all.php.txt",
+    "crawl_time": "2026-06-16 10:38:51"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/simile/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=81&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_simile_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:13"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:53"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/love/",
+    "url": "https://home.iitd.ac.in/show.php?id=80&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_love.txt",
-    "crawl_time": "2026-06-14 13:08:15"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:56"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/inspirational/",
+    "url": "https://home.iitd.ac.in/show.php?id=79&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_inspirational.txt",
-    "crawl_time": "2026-06-14 13:08:17"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:38:59"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/life/",
+    "url": "https://home.iitd.ac.in/show.php?id=78&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_life.txt",
-    "crawl_time": "2026-06-14 13:08:19"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:02"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/humor/",
+    "url": "https://home.iitd.ac.in/show.php?id=77&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_humor.txt",
-    "crawl_time": "2026-06-14 13:08:22"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:04"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/books/",
+    "url": "https://home.iitd.ac.in/show.php?id=76&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_books.txt",
-    "crawl_time": "2026-06-14 13:08:24"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:07"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/reading/",
+    "url": "https://home.iitd.ac.in/show.php?id=75&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_reading.txt",
-    "crawl_time": "2026-06-14 13:08:25"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:09"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/friendship/",
+    "url": "https://home.iitd.ac.in/show.php?id=74&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_friendship.txt",
-    "crawl_time": "2026-06-14 13:08:27"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:11"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/friends/",
+    "url": "https://home.iitd.ac.in/show.php?id=73&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_friends.txt",
-    "crawl_time": "2026-06-14 13:08:29"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:14"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/truth/",
+    "url": "https://home.iitd.ac.in/show.php?id=72&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_truth.txt",
-    "crawl_time": "2026-06-14 13:08:31"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:16"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/simile/",
+    "url": "https://home.iitd.ac.in/show.php?id=71&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_simile.txt",
-    "crawl_time": "2026-06-14 13:08:32"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:18"
   },
   {
-    "url": "http://quotes.toscrape.com/author/Terry-Pratchett",
+    "url": "https://home.iitd.ac.in/show.php?id=70&in_sections=Research",
     "title": "No Title",
-    "filename": "author_Terry-Pratchett.txt",
-    "crawl_time": "2026-06-14 13:08:35"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:21"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/open-mind/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=69&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_open-mind_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:36"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:23"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/friends/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=68&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_friends_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:38"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:25"
   },
   {
-    "url": "http://quotes.toscrape.com/tag/heartbreak/page/1/",
+    "url": "https://home.iitd.ac.in/show.php?id=67&in_sections=Research",
     "title": "No Title",
-    "filename": "tag_heartbreak_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:40"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/sisters/page/1/",
-    "title": "No Title",
-    "filename": "tag_sisters_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:42"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Elie-Wiesel",
-    "title": "No Title",
-    "filename": "author_Elie-Wiesel.txt",
-    "crawl_time": "2026-06-14 13:08:44"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/activism/page/1/",
-    "title": "No Title",
-    "filename": "tag_activism_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:46"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/apathy/page/1/",
-    "title": "No Title",
-    "filename": "tag_apathy_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:47"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/hate/page/1/",
-    "title": "No Title",
-    "filename": "tag_hate_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:49"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/indifference/page/1/",
-    "title": "No Title",
-    "filename": "tag_indifference_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:51"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/opposite/page/1/",
-    "title": "No Title",
-    "filename": "tag_opposite_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:53"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/philosophy/page/1/",
-    "title": "No Title",
-    "filename": "tag_philosophy_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:54"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/death/page/1/",
-    "title": "No Title",
-    "filename": "tag_death_page_1.txt",
-    "crawl_time": "2026-06-14 13:08:56"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/George-Eliot",
-    "title": "No Title",
-    "filename": "author_George-Eliot.txt",
-    "crawl_time": "2026-06-14 13:08:58"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/C-S-Lewis",
-    "title": "No Title",
-    "filename": "author_C-S-Lewis.txt",
-    "crawl_time": "2026-06-14 13:09:00"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/reading/page/1/",
-    "title": "No Title",
-    "filename": "tag_reading_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:02"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/tea/page/1/",
-    "title": "No Title",
-    "filename": "tag_tea_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:04"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Martin-Luther-King-Jr",
-    "title": "No Title",
-    "filename": "author_Martin-Luther-King-Jr.txt",
-    "crawl_time": "2026-06-14 13:09:06"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/hope/page/1/",
-    "title": "No Title",
-    "filename": "tag_hope_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:08"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Helen-Keller",
-    "title": "No Title",
-    "filename": "author_Helen-Keller.txt",
-    "crawl_time": "2026-06-14 13:09:10"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Douglas-Adams",
-    "title": "No Title",
-    "filename": "author_Douglas-Adams.txt",
-    "crawl_time": "2026-06-14 13:09:12"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/navigation/page/1/",
-    "title": "No Title",
-    "filename": "tag_navigation_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:14"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Mark-Twain",
-    "title": "No Title",
-    "filename": "author_Mark-Twain.txt",
-    "crawl_time": "2026-06-14 13:09:16"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/contentment/page/1/",
-    "title": "No Title",
-    "filename": "tag_contentment_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:18"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/friendship/page/1/",
-    "title": "No Title",
-    "filename": "tag_friendship_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:20"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Allen-Saunders",
-    "title": "No Title",
-    "filename": "author_Allen-Saunders.txt",
-    "crawl_time": "2026-06-14 13:09:22"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/fate/page/1/",
-    "title": "No Title",
-    "filename": "tag_fate_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:24"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/misattributed-john-lennon/page/1/",
-    "title": "No Title",
-    "filename": "tag_misattributed-john-lennon_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:25"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/planning/page/1/",
-    "title": "No Title",
-    "filename": "tag_planning_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:27"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/plans/page/1/",
-    "title": "No Title",
-    "filename": "tag_plans_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:29"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Dr-Seuss",
-    "title": "No Title",
-    "filename": "author_Dr-Seuss.txt",
-    "crawl_time": "2026-06-14 13:09:31"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/comedy/page/1/",
-    "title": "No Title",
-    "filename": "tag_comedy_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:33"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/yourself/page/1/",
-    "title": "No Title",
-    "filename": "tag_yourself_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:34"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/George-Bernard-Shaw",
-    "title": "No Title",
-    "filename": "author_George-Bernard-Shaw.txt",
-    "crawl_time": "2026-06-14 13:09:37"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Ralph-Waldo-Emerson",
-    "title": "No Title",
-    "filename": "author_Ralph-Waldo-Emerson.txt",
-    "crawl_time": "2026-06-14 13:09:39"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/regrets/page/1/",
-    "title": "No Title",
-    "filename": "tag_regrets_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:41"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Jorge-Luis-Borges",
-    "title": "No Title",
-    "filename": "author_Jorge-Luis-Borges.txt",
-    "crawl_time": "2026-06-14 13:09:43"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/library/page/1/",
-    "title": "No Title",
-    "filename": "tag_library_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:45"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Haruki-Murakami",
-    "title": "No Title",
-    "filename": "author_Haruki-Murakami.txt",
-    "crawl_time": "2026-06-14 13:09:47"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/thought/page/1/",
-    "title": "No Title",
-    "filename": "tag_thought_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:49"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Ernest-Hemingway",
-    "title": "No Title",
-    "filename": "author_Ernest-Hemingway.txt",
-    "crawl_time": "2026-06-14 13:09:51"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/novelist-quotes/page/1/",
-    "title": "No Title",
-    "filename": "tag_novelist-quotes_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:52"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/J-D-Salinger",
-    "title": "No Title",
-    "filename": "author_J-D-Salinger.txt",
-    "crawl_time": "2026-06-14 13:09:55"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/authors/page/1/",
-    "title": "No Title",
-    "filename": "tag_authors_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:56"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/literature/page/1/",
-    "title": "No Title",
-    "filename": "tag_literature_page_1.txt",
-    "crawl_time": "2026-06-14 13:09:58"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/writing/page/1/",
-    "title": "No Title",
-    "filename": "tag_writing_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:00"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Madeleine-LEngle",
-    "title": "No Title",
-    "filename": "author_Madeleine-LEngle.txt",
-    "crawl_time": "2026-06-14 13:10:02"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/children/page/1/",
-    "title": "No Title",
-    "filename": "tag_children_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:04"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/difficult/page/1/",
-    "title": "No Title",
-    "filename": "tag_difficult_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:06"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/grown-ups/page/1/",
-    "title": "No Title",
-    "filename": "tag_grown-ups_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:07"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/write/page/1/",
-    "title": "No Title",
-    "filename": "tag_write_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:09"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/writers/page/1/",
-    "title": "No Title",
-    "filename": "tag_writers_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:11"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Garrison-Keillor",
-    "title": "No Title",
-    "filename": "author_Garrison-Keillor.txt",
-    "crawl_time": "2026-06-14 13:10:13"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/religion/page/1/",
-    "title": "No Title",
-    "filename": "tag_religion_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:15"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Jim-Henson",
-    "title": "No Title",
-    "filename": "author_Jim-Henson.txt",
-    "crawl_time": "2026-06-14 13:10:17"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Charles-M-Schulz",
-    "title": "No Title",
-    "filename": "author_Charles-M-Schulz.txt",
-    "crawl_time": "2026-06-14 13:10:19"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/chocolate/page/1/",
-    "title": "No Title",
-    "filename": "tag_chocolate_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:21"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/food/page/1/",
-    "title": "No Title",
-    "filename": "tag_food_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:23"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Suzanne-Collins",
-    "title": "No Title",
-    "filename": "author_Suzanne-Collins.txt",
-    "crawl_time": "2026-06-14 13:10:25"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Charles-Bukowski",
-    "title": "No Title",
-    "filename": "author_Charles-Bukowski.txt",
-    "crawl_time": "2026-06-14 13:10:27"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/George-Carlin",
-    "title": "No Title",
-    "filename": "author_George-Carlin.txt",
-    "crawl_time": "2026-06-14 13:10:29"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/insanity/page/1/",
-    "title": "No Title",
-    "filename": "tag_insanity_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:31"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/lies/page/1/",
-    "title": "No Title",
-    "filename": "tag_lies_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:32"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/lying/page/1/",
-    "title": "No Title",
-    "filename": "tag_lying_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:34"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/self-indulgence/page/1/",
-    "title": "No Title",
-    "filename": "tag_self-indulgence_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:36"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/truth/page/1/",
-    "title": "No Title",
-    "filename": "tag_truth_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:38"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Bob-Marley",
-    "title": "No Title",
-    "filename": "author_Bob-Marley.txt",
-    "crawl_time": "2026-06-14 13:10:40"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Friedrich-Nietzsche",
-    "title": "No Title",
-    "filename": "author_Friedrich-Nietzsche.txt",
-    "crawl_time": "2026-06-14 13:10:42"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/lack-of-friendship/page/1/",
-    "title": "No Title",
-    "filename": "tag_lack-of-friendship_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:44"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/lack-of-love/page/1/",
-    "title": "No Title",
-    "filename": "tag_lack-of-love_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:46"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/marriage/page/1/",
-    "title": "No Title",
-    "filename": "tag_marriage_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:47"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/unhappy-marriage/page/1/",
-    "title": "No Title",
-    "filename": "tag_unhappy-marriage_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:49"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Pablo-Neruda",
-    "title": "No Title",
-    "filename": "author_Pablo-Neruda.txt",
-    "crawl_time": "2026-06-14 13:10:51"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/poetry/page/1/",
-    "title": "No Title",
-    "filename": "tag_poetry_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:53"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/girls/page/1/",
-    "title": "No Title",
-    "filename": "tag_girls_page_1.txt",
-    "crawl_time": "2026-06-14 13:10:55"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/James-Baldwin",
-    "title": "No Title",
-    "filename": "author_James-Baldwin.txt",
-    "crawl_time": "2026-06-14 13:10:57"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Mother-Teresa",
-    "title": "No Title",
-    "filename": "author_Mother-Teresa.txt",
-    "crawl_time": "2026-06-14 13:11:00"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/misattributed-to-mother-teresa/page/1/",
-    "title": "No Title",
-    "filename": "tag_misattributed-to-mother-teresa_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:02"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Stephenie-Meyer",
-    "title": "No Title",
-    "filename": "author_Stephenie-Meyer.txt",
-    "crawl_time": "2026-06-14 13:11:04"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/drug/page/1/",
-    "title": "No Title",
-    "filename": "tag_drug_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:06"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/romance/page/1/",
-    "title": "No Title",
-    "filename": "tag_romance_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:08"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/learning/page/1/",
-    "title": "No Title",
-    "filename": "tag_learning_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:10"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/seuss/page/1/",
-    "title": "No Title",
-    "filename": "tag_seuss_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:11"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/William-Nicholson",
-    "title": "No Title",
-    "filename": "author_William-Nicholson.txt",
-    "crawl_time": "2026-06-14 13:11:13"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/misattributed-to-c-s-lewis/page/1/",
-    "title": "No Title",
-    "filename": "tag_misattributed-to-c-s-lewis_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:15"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/George-R-R-Martin",
-    "title": "No Title",
-    "filename": "author_George-R-R-Martin.txt",
-    "crawl_time": "2026-06-14 13:11:17"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/read/page/1/",
-    "title": "No Title",
-    "filename": "tag_read_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:19"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/readers/page/1/",
-    "title": "No Title",
-    "filename": "tag_readers_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:21"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/reading-books/page/1/",
-    "title": "No Title",
-    "filename": "tag_reading-books_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:23"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Alfred-Tennyson",
-    "title": "No Title",
-    "filename": "author_Alfred-Tennyson.txt",
-    "crawl_time": "2026-06-14 13:11:25"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/courage/page/1/",
-    "title": "No Title",
-    "filename": "tag_courage_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:26"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/misattributed-mark-twain/page/1/",
-    "title": "No Title",
-    "filename": "tag_misattributed-mark-twain_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:28"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/Jimi-Hendrix",
-    "title": "No Title",
-    "filename": "author_Jimi-Hendrix.txt",
-    "crawl_time": "2026-06-14 13:11:30"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/John-Lennon",
-    "title": "No Title",
-    "filename": "author_John-Lennon.txt",
-    "crawl_time": "2026-06-14 13:11:33"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/beatles/page/1/",
-    "title": "No Title",
-    "filename": "tag_beatles_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:34"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/connection/page/1/",
-    "title": "No Title",
-    "filename": "tag_connection_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:36"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/dreamers/page/1/",
-    "title": "No Title",
-    "filename": "tag_dreamers_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:38"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/dreaming/page/1/",
-    "title": "No Title",
-    "filename": "tag_dreaming_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:39"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/dreams/page/1/",
-    "title": "No Title",
-    "filename": "tag_dreams_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:41"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/peace/page/1/",
-    "title": "No Title",
-    "filename": "tag_peace_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:43"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/good/page/1/",
-    "title": "No Title",
-    "filename": "tag_good_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:45"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/fairy-tales/page/1/",
-    "title": "No Title",
-    "filename": "tag_fairy-tales_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:47"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/christianity/page/1/",
-    "title": "No Title",
-    "filename": "tag_christianity_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:48"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/faith/page/1/",
-    "title": "No Title",
-    "filename": "tag_faith_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:50"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/sun/page/1/",
-    "title": "No Title",
-    "filename": "tag_sun_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:52"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/knowledge/page/1/",
-    "title": "No Title",
-    "filename": "tag_knowledge_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:54"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/understanding/page/1/",
-    "title": "No Title",
-    "filename": "tag_understanding_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:55"
-  },
-  {
-    "url": "http://quotes.toscrape.com/tag/wisdom/page/1/",
-    "title": "No Title",
-    "filename": "tag_wisdom_page_1.txt",
-    "crawl_time": "2026-06-14 13:11:57"
-  },
-  {
-    "url": "http://quotes.toscrape.com/author/E-E-Cummings",
-    "title": "No Title",
-    "filename": "author_E-E-Cummings.txt",
-    "crawl_time": "2026-06-14 13:11:59"
+    "filename": "show.php.txt",
+    "crawl_time": "2026-06-16 10:39:28"
   }
 ]
