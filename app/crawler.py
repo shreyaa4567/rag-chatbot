@@ -5,9 +5,10 @@ import time
 import json
 import requests
 import tldextract
+from collections import deque
 from bs4 import BeautifulSoup
 from datetime import datetime
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
@@ -26,12 +27,40 @@ HEADERS = {
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 def get_base_domain(url):
+    """Return 'domain.suffix' (e.g. 'taylorswift.com') for robust comparison."""
     extracted = tldextract.extract(url)
-    return extracted.domain
+    return f"{extracted.domain}.{extracted.suffix}".lower()
 
 def is_same_domain(url, base_domain):
+    """Compare full registered domain (domain.suffix), not just the domain word."""
     extracted = tldextract.extract(url)
-    return extracted.domain == base_domain
+    url_domain = f"{extracted.domain}.{extracted.suffix}".lower()
+    return url_domain == base_domain
+
+def normalize_url(url):
+    """Normalize a URL to prevent duplicate crawling.
+    
+    - Strips fragment (#section)
+    - Normalizes trailing slashes on paths
+    - Lowercases scheme and host
+    - Removes default ports (80/443)
+    """
+    parsed = urlparse(url)
+    # Lowercase scheme and host
+    scheme = parsed.scheme.lower()
+    host   = parsed.hostname.lower() if parsed.hostname else ""
+    # Remove default ports
+    port   = parsed.port
+    if port in (80, 443, None):
+        netloc = host
+    else:
+        netloc = f"{host}:{port}"
+    # Normalize path: strip trailing slash (keep root "/")
+    path = parsed.path
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/")
+    # Drop fragment entirely, keep query
+    return urlunparse((scheme, netloc, path, parsed.params, parsed.query, ""))
 
 def clean_text(soup):
     for tag in soup(["script", "style", "nav", "footer", "head"]):
@@ -100,7 +129,7 @@ def fetch_page(url):
         for a_tag in soup.find_all("a", href=True):
             href     = a_tag["href"].strip()
             full_url = urljoin(url, href)
-            links.append(full_url)
+            links.append(normalize_url(full_url))
         return url, text, title, links, None
     except requests.exceptions.Timeout:
         return url, None, None, None, "Timeout"
@@ -115,12 +144,13 @@ def crawl(start_url, progress_callback=None):
     print(f"\n Starting crawl: {start_url}")
     print(f" Max pages: {config.MAX_PAGES}")
 
+    start_url   = normalize_url(start_url)
     base_domain = get_base_domain(start_url)
     print(f" Base domain: {base_domain}\n")
 
     visited    = set()
     queued     = {start_url}
-    to_visit   = [start_url]
+    to_visit   = deque([start_url])
     metadata   = load_metadata()
     page_count = 0
 
@@ -130,7 +160,7 @@ def crawl(start_url, progress_callback=None):
             # Take up to 5 URLs at once
             batch = []
             while to_visit and len(batch) < 5 and page_count + len(batch) < config.MAX_PAGES:
-                url = to_visit.pop(0)
+                url = to_visit.popleft()
                 if url in visited:
                     continue
                 if not url.startswith("http"):
@@ -154,9 +184,9 @@ def crawl(start_url, progress_callback=None):
                     log_error(url, error)
                     continue
 
-                # Save text
-                safe_name = urlparse(url).path.strip("/").replace("/", "_") or "homepage"
-                filename  = f"{safe_name}.txt"
+                # Save text with unique sequential filename to prevent collisions
+                page_count += 1
+                filename = f"page_{page_count:04d}.txt"
                 save_text(filename, text)
 
                 metadata.append({
@@ -167,20 +197,19 @@ def crawl(start_url, progress_callback=None):
                 })
                 save_metadata(metadata)
                 log_visited(url)
-                page_count += 1
 
                 print(f"[{page_count}] Crawled: {url}")
 
                 # Add new links
                 if links:
-                    for full_url in links:
+                    for link_url in links:
                         if (
-                            is_same_domain(full_url, base_domain)
-                            and full_url not in visited
-                            and full_url not in queued
+                            is_same_domain(link_url, base_domain)
+                            and link_url not in visited
+                            and link_url not in queued
                         ):
-                            to_visit.append(full_url)
-                            queued.add(full_url)
+                            to_visit.append(link_url)
+                            queued.add(link_url)
 
                 # Update progress
                 if progress_callback:
