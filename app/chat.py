@@ -74,7 +74,12 @@ def chat(question):
     if collection is None:
         raise RuntimeError("No website loaded yet. Please load a website first.")
 
-    results = search(question, collection, k=3)
+    results = search(question, collection, k=6)
+
+    # Handle case where all results were filtered out by distance threshold
+    if not results["documents"][0]:
+        return "I don't have enough information from this website to answer that.", []
+
     prompt  = build_prompt(question, results)
 
     response = ollama.chat(

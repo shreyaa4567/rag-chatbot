@@ -132,12 +132,46 @@ def load_vectorstore():
 
 # ─── SEARCH ───────────────────────────────────────────────────────────────────
 
-def search(query, collection, k=3):
+def search(query, collection, k=6, max_distance=1.5):
+    """Search for relevant chunks with distance-based quality filtering.
+
+    Args:
+        query: The search query text.
+        collection: ChromaDB collection to search.
+        k: Number of candidate results to retrieve (default 6).
+        max_distance: Maximum distance threshold — chunks with distance
+                      above this are filtered out as irrelevant (default 1.5).
+
+    Returns:
+        ChromaDB-style results dict with 'documents', 'metadatas',
+        'distances' lists, filtered to only include relevant results.
+    """
     query_embedding = get_embedding(query)
     results = collection.query(
         query_embeddings = [query_embedding],
-        n_results        = k
+        n_results        = k,
+        include          = ["documents", "metadatas", "distances"]
     )
+
+    # Filter out low-relevance results by distance threshold
+    if results["distances"] and results["distances"][0]:
+        filtered_docs  = []
+        filtered_metas = []
+        filtered_dists = []
+        for doc, meta, dist in zip(
+            results["documents"][0],
+            results["metadatas"][0],
+            results["distances"][0]
+        ):
+            if dist <= max_distance:
+                filtered_docs.append(doc)
+                filtered_metas.append(meta)
+                filtered_dists.append(dist)
+
+        results["documents"] = [filtered_docs]
+        results["metadatas"] = [filtered_metas]
+        results["distances"] = [filtered_dists]
+
     return results
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
