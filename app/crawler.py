@@ -63,17 +63,44 @@ def normalize_url(url):
     return urlunparse((scheme, netloc, path, parsed.params, parsed.query, ""))
 
 def clean_text(soup):
-    for tag in soup(["script", "style", "nav", "footer", "head"]):
+    """Extract meaningful text content from HTML, removing boilerplate."""
+    # Remove non-content tags
+    for tag in soup(["script", "style", "nav", "footer", "head",
+                     "aside", "header", "form", "iframe", "noscript"]):
         tag.decompose()
+
+    # Remove elements with common boilerplate CSS classes/IDs/roles
+    boilerplate_patterns = [
+        "sidebar", "breadcrumb", "cookie", "banner", "menu",
+        "social", "share", "widget", "popup", "modal", "advert",
+        "newsletter", "signup", "toolbar", "pagination"
+    ]
+    for element in soup.find_all(True, attrs={"class": True}):
+        classes = " ".join(element.get("class", [])).lower()
+        if any(pattern in classes for pattern in boilerplate_patterns):
+            element.decompose()
+    for element in soup.find_all(True, attrs={"id": True}):
+        elem_id = (element.get("id") or "").lower()
+        if any(pattern in elem_id for pattern in boilerplate_patterns):
+            element.decompose()
+
+    # Extract text from content-bearing tags
+    content_tags = ["p", "span", "div", "li", "td", "th",
+                    "h1", "h2", "h3", "h4", "h5", "h6",
+                    "blockquote", "article", "section"]
     blocks = []
-    for tag in soup.find_all(["p", "span", "div", "li", "h1", "h2", "h3", "blockquote"]):
+    seen = set()  # Deduplicate repeated text (e.g. nav items that survived)
+    for tag in soup.find_all(content_tags):
         text = tag.get_text(separator=" ").strip()
-        if len(text) > 30:
+        if len(text) > 30 and text not in seen:
             blocks.append(text)
+            seen.add(text)
+
     if blocks:
         combined = "\n\n".join(blocks)
     else:
         combined = soup.get_text(separator=" ")
+
     lines = [line.strip() for line in combined.splitlines()]
     lines = [line for line in lines if line]
     return "\n\n".join(lines)
