@@ -7,21 +7,42 @@ import config
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.chat import chat, reload_collection
+from app.chat import chat, reload_collection, init as init_chat, is_ready
 
 # ─── FLASK SETUP ──────────────────────────────────────────────────────────────
 
 app = Flask(__name__)
 CORS(app)
 
-# ─── PROGRESS TRACKING ────────────────────────────────────────────────────────
+# ─── THREAD-SAFE PROGRESS TRACKING ───────────────────────────────────────────
 
-progress = {
+_progress_lock = threading.Lock()
+_pipeline_lock = threading.Lock()
+
+_progress = {
     "status"   : "idle",      # idle | crawling | embedding | ready | error
     "percent"  : 0,
     "message"  : "",
     "url"      : ""
 }
+
+def get_progress_snapshot():
+    """Return a thread-safe copy of the current progress."""
+    with _progress_lock:
+        return dict(_progress)
+
+def set_progress(**kwargs):
+    """Thread-safe update of progress fields."""
+    with _progress_lock:
+        _progress.update(kwargs)
+
+# ─── INITIALIZE CHAT (safe — won't crash if DB doesn't exist) ────────────────
+
+init_chat()
+
+# If vectorstore was loaded successfully, mark as ready
+if is_ready():
+    set_progress(status="ready", percent=100, message="Ready! Ask your questions.")
 
 # ─── ROUTES ───────────────────────────────────────────────────────────────────
 
@@ -40,14 +61,12 @@ def health():
 
 
 @app.route("/progress", methods=["GET"])
-def get_progress():
-    return jsonify(progress)
+def progress_endpoint():
+    return jsonify(get_progress_snapshot())
 
 
 @app.route("/load", methods=["POST"])
 def load_website():
-    global progress
-
     data = request.get_json()
     if not data or "url" not in data:
         return jsonify({"error": "Missing 'url' in request body"}), 400
@@ -55,6 +74,10 @@ def load_website():
     url = data["url"].strip()
     if not url.startswith("http"):
         return jsonify({"error": "Invalid URL. Must start with http or https"}), 400
+
+    # Prevent concurrent pipeline runs
+    if not _pipeline_lock.acquire(blocking=False):
+        return jsonify({"error": "A pipeline is already running. Please wait."}), 409
 
     # Start crawl+embed in background thread
     thread = threading.Thread(target=run_pipeline, args=(url,))
@@ -66,7 +89,7 @@ def load_website():
 
 @app.route("/chat", methods=["POST"])
 def chat_endpoint():
-    if progress["status"] != "ready":
+    if not is_ready():
         return jsonify({"error": "Website not loaded yet. Please load a website first."}), 400
 
     data = request.get_json()
@@ -87,11 +110,9 @@ def chat_endpoint():
 # ─── BACKGROUND PIPELINE ──────────────────────────────────────────────────────
 
 def run_pipeline(url):
-    global progress
-
     try:
         # ── Step 1: Clear old data ──
-        progress.update({"status": "crawling", "percent": 0, "message": "Clearing old data...", "url": url})
+        set_progress(status="crawling", percent=0, message="Clearing old data...", url=url)
         config.TARGET_URL = url
 
         # Close ChromaDB before deleting
@@ -113,41 +134,43 @@ def run_pipeline(url):
            os.makedirs(config.CHROMA_DIR)
 
         # ── Step 2: Crawl ──
-        progress.update({"percent": 5, "message": "Crawling website..."})
+        set_progress(percent=5, message="Crawling website...")
         from app.crawler import crawl
         crawl(url, progress_callback=update_crawl_progress)
 
         # ── Step 3: Embed ──
-        progress.update({"status": "embedding", "percent": 50, "message": "Building knowledge base..."})
+        set_progress(status="embedding", percent=50, message="Building knowledge base...")
         from app.rag_pipeline import load_documents, chunk_documents, build_vectorstore
         documents, metadata = load_documents()
         chunks, chunk_meta  = chunk_documents(documents, metadata)
         build_vectorstore(chunks, chunk_meta, progress_callback=update_embed_progress)
 
         # ── Step 4: Reload ──
-        progress.update({"percent": 95, "message": "Loading into memory..."})
+        set_progress(percent=95, message="Loading into memory...")
         chat_module.reload_collection()
 
-        progress.update({"status": "ready", "percent": 100, "message": "Ready! Ask your questions."})
+        set_progress(status="ready", percent=100, message="Ready! Ask your questions.")
 
     except Exception as e:
-        progress.update({"status": "error", "percent": 0, "message": f"Error: {str(e)}"})
-   
+        set_progress(status="error", percent=0, message=f"Error: {str(e)}")
+    finally:
+        _pipeline_lock.release()
+
 
 def update_crawl_progress(pages_done, max_pages):
     percent = 5 + int((pages_done / max_pages) * 45)
-    progress.update({
-        "percent" : percent,
-        "message" : f"Crawling... {pages_done}/{max_pages} pages done"
-    })
+    set_progress(
+        percent = percent,
+        message = f"Crawling... {pages_done}/{max_pages} pages done"
+    )
 
 
 def update_embed_progress(chunks_done, total_chunks):
     percent = 50 + int((chunks_done / total_chunks) * 45)
-    progress.update({
-        "percent" : percent,
-        "message" : f"Embedding... {chunks_done}/{total_chunks} chunks done"
-    })
+    set_progress(
+        percent = percent,
+        message = f"Embedding... {chunks_done}/{total_chunks} chunks done"
+    )
 
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
