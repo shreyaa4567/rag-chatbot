@@ -4,21 +4,29 @@ import ollama
 import config
 from app.rag_pipeline import load_vectorstore, search
 
-# ─── LOAD VECTORSTORE ONCE ────────────────────────────────────────────────────
+# ─── LOAD VECTORSTORE ─────────────────────────────────────────────────────────
 
 print("\n Loading ChromaDB vectorstore...")
 collection = load_vectorstore()
 print(" Vectorstore loaded.")
 
-# ─── WARM UP MODEL ONCE AT STARTUP ───────────────────────────────────────────
+# ─── WARM UP MODEL ────────────────────────────────────────────────────────────
 
 print(f" Warming up {config.LLM_MODEL}...")
 ollama.chat(
     model    = config.LLM_MODEL,
     messages = [{"role": "user", "content": "hi"}],
-    options  = {"num_predict": 1}   # generate just 1 token — fast warm-up
+    options  = {"num_predict": 1}
 )
 print(f" Model ready.")
+
+# ─── RELOAD COLLECTION (called after new website is loaded) ───────────────────
+
+def reload_collection():
+    global collection
+    print("\n Reloading ChromaDB collection...")
+    collection = load_vectorstore()
+    print(" Collection reloaded.")
 
 # ─── PROMPT BUILDER ───────────────────────────────────────────────────────────
 
@@ -39,16 +47,15 @@ Answer:"""
 # ─── MAIN CHAT FUNCTION ───────────────────────────────────────────────────────
 
 def chat(question):
-    results = search(question, collection, k=3)   # ← reduced from 8 to 3
-
-    prompt = build_prompt(question, results)
+    results = search(question, collection, k=3)
+    prompt  = build_prompt(question, results)
 
     response = ollama.chat(
         model    = config.LLM_MODEL,
         messages = [{"role": "user", "content": prompt}],
         options  = {
-            "num_predict" : 300,   # max tokens in answer
-            "temperature" : 0.1,   # less randomness = faster
+            "num_predict" : 300,
+            "temperature" : 0.1,
         }
     )
 
@@ -59,26 +66,3 @@ def chat(question):
     ]))
 
     return answer, sources
-
-# ─── TERMINAL CHAT LOOP ───────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    print(" RAG Chatbot ready. Type your question below.")
-    print(" Type 'exit' to quit.\n")
-
-    while True:
-        question = input("You: ").strip()
-        if not question:
-            continue
-        if question.lower() == "exit":
-            print("Goodbye!")
-            break
-
-        print("\n Searching and generating answer...\n")
-        answer, sources = chat(question)
-
-        print(f"Bot: {answer}")
-        print(f"\nSources:")
-        for s in sources:
-            print(f"  - {s}")
-        print()

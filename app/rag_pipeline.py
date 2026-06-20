@@ -9,17 +9,27 @@ import chromadb
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# ─── DIRECT OLLAMA EMBEDDING (bypasses LangChain ollama issues) ───────────────
+# ─── EMBEDDING ────────────────────────────────────────────────────────────────
+
+def get_embeddings_batch(texts):
+    """Get embeddings for a batch of texts."""
+    embeddings = []
+    for text in texts:
+        response = ollama.embeddings(
+            model  = config.EMBED_MODEL,
+            prompt = text
+        )
+        embeddings.append(response["embedding"])
+    return embeddings
 
 def get_embedding(text):
-    """Get embedding for a single text using ollama directly."""
     response = ollama.embeddings(
         model  = config.EMBED_MODEL,
         prompt = text
     )
     return response["embedding"]
 
-# ─── STEP 1: LOAD ALL TEXT FILES ──────────────────────────────────────────────
+# ─── LOAD DOCUMENTS ───────────────────────────────────────────────────────────
 
 def load_documents():
     documents = []
@@ -47,7 +57,7 @@ def load_documents():
     print(f" Loaded {len(documents)} documents from {config.DATA_DIR}/")
     return documents, metadata
 
-# ─── STEP 2: SPLIT INTO CHUNKS ────────────────────────────────────────────────
+# ─── CHUNK DOCUMENTS ──────────────────────────────────────────────────────────
 
 def chunk_documents(documents, metadata):
     splitter = RecursiveCharacterTextSplitter(
@@ -66,39 +76,52 @@ def chunk_documents(documents, metadata):
     print(f" Split into {len(all_chunks)} chunks")
     return all_chunks, all_metadata
 
-# ─── STEP 3: EMBED AND STORE IN CHROMADB ──────────────────────────────────────
+# ─── BUILD VECTORSTORE ────────────────────────────────────────────────────────
 
-def build_vectorstore(chunks, metadatas):
-    if os.path.exists(config.CHROMA_DIR):
-        shutil.rmtree(config.CHROMA_DIR)
-        print(f" Cleared old ChromaDB at {config.CHROMA_DIR}/")
+def build_vectorstore(chunks, metadatas, progress_callback=None, batch_size=50):
 
-    print(f" Embedding {len(chunks)} chunks — this may take 2-5 minutes...")
+    print(f" Embedding {len(chunks)} chunks in batches of {batch_size}...")
 
     client     = chromadb.PersistentClient(path=config.CHROMA_DIR)
-    collection = client.get_or_create_collection("rag_collection")
+    # Delete old collection if exists, create fresh one
+    try:
+        client.delete_collection("rag_collection")
+    except:
+        pass
+    collection = client.create_collection("rag_collection")
 
-    for i, (chunk, meta) in enumerate(zip(chunks, metadatas)):
-        embedding = get_embedding(chunk)
+    total = len(chunks)
+
+    for i in range(0, total, batch_size):
+        batch_chunks = chunks[i:i + batch_size]
+        batch_metas  = metadatas[i:i + batch_size]
+        batch_ids    = [str(j) for j in range(i, i + len(batch_chunks))]
+
+        embeddings = get_embeddings_batch(batch_chunks)
+
         collection.add(
-            ids        = [str(i)],
-            embeddings = [embedding],
-            documents  = [chunk],
-            metadatas  = [meta]
+            ids        = batch_ids,
+            embeddings = embeddings,
+            documents  = batch_chunks,
+            metadatas  = batch_metas
         )
-        if (i + 1) % 50 == 0:
-            print(f"   Embedded {i + 1}/{len(chunks)} chunks...")
+
+        done = min(i + batch_size, total)
+        print(f"   Embedded {done}/{total} chunks...")
+
+        if progress_callback:
+            progress_callback(done, total)
 
     print(f" Vectorstore built and saved to {config.CHROMA_DIR}/")
     return collection
 
-# ─── STEP 4: LOAD EXISTING VECTORSTORE ────────────────────────────────────────
+# ─── LOAD VECTORSTORE ─────────────────────────────────────────────────────────
 
 def load_vectorstore():
     client = chromadb.PersistentClient(path=config.CHROMA_DIR)
     return client.get_collection("rag_collection")
 
-# ─── STEP 5: SEARCH ───────────────────────────────────────────────────────────
+# ─── SEARCH ───────────────────────────────────────────────────────────────────
 
 def search(query, collection, k=3):
     query_embedding = get_embedding(query)
@@ -112,22 +135,7 @@ def search(query, collection, k=3):
 
 if __name__ == "__main__":
     print("\n Starting RAG pipeline...\n")
-
     documents, metadata = load_documents()
     chunks, chunk_meta  = chunk_documents(documents, metadata)
     collection          = build_vectorstore(chunks, chunk_meta)
-
-    print("\n Testing search...")
-    results = search("What did Einstein say about imagination?", collection)
-
-    docs      = results["documents"][0]
-    metadatas = results["metadatas"][0]
-
-    print(f"\n Top {len(docs)} results:\n")
-    for i, (doc, meta) in enumerate(zip(docs, metadatas)):
-        print(f"--- Result {i+1} ---")
-        print(f"Source : {meta.get('source', 'unknown')}")
-        print(f"Content: {doc[:200]}")
-        print()
-
-    print(" RAG pipeline complete. ChromaDB is ready.\n")
+    print(" RAG pipeline complete.\n")

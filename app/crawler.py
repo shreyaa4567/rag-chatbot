@@ -8,86 +8,67 @@ import tldextract
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import urljoin, urlparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
 
-# ─── CONSTANTS ────────────────────────────────────────────────────────────────
+# ─── HEADERS ──────────────────────────────────────────────────────────────────
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
+    "User-Agent"               : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept"                   : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language"          : "en-US,en;q=0.5",
+    "Accept-Encoding"          : "gzip, deflate, br",
+    "Connection"               : "keep-alive",
     "Upgrade-Insecure-Requests": "1",
 }
 
-# ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────────
+# ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 def get_base_domain(url):
-    """Extract base domain from URL using tldextract.
-    Example: http://quotes.toscrape.com/ → toscrape"""
     extracted = tldextract.extract(url)
     return extracted.domain
 
 def is_same_domain(url, base_domain):
-    """Check if a URL belongs to the same website."""
     extracted = tldextract.extract(url)
     return extracted.domain == base_domain
 
 def clean_text(soup):
-    """Extract clean readable text from a BeautifulSoup object."""
-    # Remove tags that contain code/navigation, not content
     for tag in soup(["script", "style", "nav", "footer", "head"]):
         tag.decompose()
-
-    # Try to find individual quote blocks and separate them with newlines
-    # This handles sites like quotes.toscrape.com where quotes are in <span> or <div>
     blocks = []
-
-    # Look for common content containers
     for tag in soup.find_all(["p", "span", "div", "li", "h1", "h2", "h3", "blockquote"]):
         text = tag.get_text(separator=" ").strip()
-        if len(text) > 30:  # skip tiny fragments
+        if len(text) > 30:
             blocks.append(text)
-
     if blocks:
-        # Join blocks with double newline — chunker will split on these naturally
         combined = "\n\n".join(blocks)
     else:
-        # Fallback to plain text extraction
         combined = soup.get_text(separator=" ")
-
-    # Clean up extra whitespace within each block
     lines = [line.strip() for line in combined.splitlines()]
     lines = [line for line in lines if line]
     return "\n\n".join(lines)
 
 def get_page_title(soup):
-    """Extract page title."""
     title_tag = soup.find("title")
     if title_tag:
         return title_tag.get_text().strip()
     return "No Title"
 
 def save_text(filename, text):
-    """Save extracted text to data/ folder."""
     filepath = os.path.join(config.DATA_DIR, filename)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(text)
 
 def log_visited(url):
-    """Write successfully visited URL to log file."""
     with open(config.VISITED_LOG, "a", encoding="utf-8") as f:
         f.write(url + "\n")
 
 def log_error(url, reason):
-    """Write failed URL and reason to error log."""
     with open(config.ERROR_LOG, "a", encoding="utf-8") as f:
         f.write(f"{url} | {reason}\n")
 
 def load_metadata():
-    """Load existing metadata from file, or start fresh."""
     if os.path.exists(config.METADATA_FILE):
         with open(config.METADATA_FILE, "r", encoding="utf-8") as f:
             try:
@@ -97,127 +78,117 @@ def load_metadata():
     return []
 
 def save_metadata(metadata):
-    """Save metadata list to JSON file."""
     with open(config.METADATA_FILE, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
+# ─── FETCH SINGLE PAGE ────────────────────────────────────────────────────────
+
+def fetch_page(url):
+    try:
+        response = requests.get(url, timeout=config.REQUEST_TIMEOUT, headers=HEADERS)
+        if response.status_code != 200:
+            return url, None, None, None, f"HTTP {response.status_code}"
+        content_type = response.headers.get("Content-Type", "")
+        if "text/html" not in content_type:
+            return url, None, None, None, f"Skipped: {content_type}"
+        soup  = BeautifulSoup(response.text, "lxml")
+        text  = clean_text(soup)
+        title = get_page_title(soup)
+        if len(text) < 50:
+            return url, None, None, None, "Too little content"
+        links = []
+        for a_tag in soup.find_all("a", href=True):
+            href     = a_tag["href"].strip()
+            full_url = urljoin(url, href)
+            links.append(full_url)
+        return url, text, title, links, None
+    except requests.exceptions.Timeout:
+        return url, None, None, None, "Timeout"
+    except requests.exceptions.ConnectionError:
+        return url, None, None, None, "Connection error"
+    except Exception as e:
+        return url, None, None, None, str(e)
+
 # ─── MAIN CRAWLER ─────────────────────────────────────────────────────────────
 
-def crawl(start_url):
+def crawl(start_url, progress_callback=None):
     print(f"\n Starting crawl: {start_url}")
     print(f" Max pages: {config.MAX_PAGES}")
-    print(f" Delay: {config.DELAY_SECONDS}s between requests\n")
 
     base_domain = get_base_domain(start_url)
-    print(f" Base domain detected: {base_domain}\n")
+    print(f" Base domain: {base_domain}\n")
 
-    visited    = set()          # URLs already crawled
-    queued     = {start_url}    # URLs already added to queue (prevents duplicates)
-    to_visit   = [start_url]    # queue of URLs to crawl next
+    visited    = set()
+    queued     = {start_url}
+    to_visit   = [start_url]
     metadata   = load_metadata()
     page_count = 0
 
-    while to_visit and page_count < config.MAX_PAGES:
-        url = to_visit.pop(0)   # take first URL from queue
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        while to_visit and page_count < config.MAX_PAGES:
 
-        # Skip if already visited
-        if url in visited:
-            continue
+            # Take up to 5 URLs at once
+            batch = []
+            while to_visit and len(batch) < 5 and page_count + len(batch) < config.MAX_PAGES:
+                url = to_visit.pop(0)
+                if url in visited:
+                    continue
+                if not url.startswith("http"):
+                    continue
+                if url.lower().endswith((".pdf", ".jpg", ".png", ".zip", ".doc", ".docx", ".xls")):
+                    continue
+                batch.append(url)
 
-        # Skip non-http URLs (mailto:, javascript:, etc.)
-        if not url.startswith("http"):
-            continue
-        if url.lower().endswith((".pdf", ".jpg", ".png", ".zip", ".doc", ".docx", ".xls")):
-            continue
+            if not batch:
+                break
 
-        print(f"[{page_count + 1}] Crawling: {url}")
+            # Fetch batch in parallel
+            futures = {executor.submit(fetch_page, url): url for url in batch}
 
-        try:
-            response = requests.get(
-                url,
-                timeout=config.REQUEST_TIMEOUT,
-                headers=HEADERS
-            )
+            for future in as_completed(futures):
+                url, text, title, links, error = future.result()
 
-            # Skip pages that didn't load successfully
-            if response.status_code != 200:
-                log_error(url, f"HTTP {response.status_code}")
                 visited.add(url)
-                continue
 
-            # Skip non-HTML pages (PDFs, images, etc.)
-            content_type = response.headers.get("Content-Type", "")
-            if "text/html" not in content_type:
-                log_error(url, f"Skipped content type: {content_type}")
-                visited.add(url)
-                continue
+                if error:
+                    log_error(url, error)
+                    continue
 
-            soup  = BeautifulSoup(response.text, "lxml")
-            text  = clean_text(soup)
-            title = get_page_title(soup)
+                # Save text
+                safe_name = urlparse(url).path.strip("/").replace("/", "_") or "homepage"
+                filename  = f"{safe_name}.txt"
+                save_text(filename, text)
 
-            # Skip pages with almost no content
-            if len(text) < 50:
-                log_error(url, "Too little content")
-                visited.add(url)
-                continue
+                metadata.append({
+                    "url"        : url,
+                    "title"      : title,
+                    "filename"   : filename,
+                    "crawl_time" : datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+                save_metadata(metadata)
+                log_visited(url)
+                page_count += 1
 
-            # ── Save text file ────────────────────────────────────────────
-            safe_name = urlparse(url).path.strip("/").replace("/", "_") or "homepage"
-            filename  = f"{safe_name}.txt"
-            save_text(filename, text)
+                print(f"[{page_count}] Crawled: {url}")
 
-            # ── Save metadata entry ───────────────────────────────────────
-            metadata.append({
-                "url"        : url,
-                "title"      : title,
-                "filename"   : filename,
-                "crawl_time" : datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-            save_metadata(metadata)
+                # Add new links
+                if links:
+                    for full_url in links:
+                        if (
+                            is_same_domain(full_url, base_domain)
+                            and full_url not in visited
+                            and full_url not in queued
+                        ):
+                            to_visit.append(full_url)
+                            queued.add(full_url)
 
-            # ── Log success ───────────────────────────────────────────────
-            log_visited(url)
-            visited.add(url)
-            page_count += 1
+                # Update progress
+                if progress_callback:
+                    progress_callback(page_count, config.MAX_PAGES)
 
-            # ── Find new links on this page ───────────────────────────────
-            for a_tag in soup.find_all("a", href=True):
-                href     = a_tag["href"].strip()
-                full_url = urljoin(url, href)
+            time.sleep(0.2)
 
-                # Only add if same domain, not visited, not already queued
-                if (
-                    is_same_domain(full_url, base_domain)
-                    and full_url not in visited
-                    and full_url not in queued
-                ):
-                    to_visit.append(full_url)
-                    queued.add(full_url)
-
-            # ── Wait before next request ──────────────────────────────────
-            time.sleep(config.DELAY_SECONDS)
-
-        except requests.exceptions.Timeout:
-            log_error(url, "Timeout")
-            visited.add(url)
-
-        except requests.exceptions.ConnectionError:
-            log_error(url, "Connection error")
-            visited.add(url)
-
-        except Exception as e:
-            log_error(url, str(e))
-            visited.add(url)
-
-    # ── Done ──────────────────────────────────────────────────────────────────
-    print(f"\n Crawl complete!")
-    print(f" Pages crawled       : {page_count}")
-    print(f" Text files saved in : {config.DATA_DIR}/")
-    print(f" Metadata saved in   : {config.METADATA_FILE}")
-    print(f" Visited log         : {config.VISITED_LOG}")
-    print(f" Error log           : {config.ERROR_LOG}\n")
-
+    print(f"\n Crawl complete! Pages crawled: {page_count}")
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 
