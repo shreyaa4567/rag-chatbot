@@ -38,7 +38,8 @@ def load_documents():
     with open(config.METADATA_FILE, "r", encoding="utf-8") as f:
         meta_list = json.load(f)
 
-    file_to_url = {entry["filename"]: entry["url"] for entry in meta_list}
+    file_to_url   = {entry["filename"]: entry["url"] for entry in meta_list}
+    file_to_title = {entry["filename"]: entry.get("title", "No Title") for entry in meta_list}
 
     for filename in os.listdir(config.DATA_DIR):
         if not filename.endswith(".txt"):
@@ -51,6 +52,7 @@ def load_documents():
         documents.append(text)
         metadata.append({
             "source"   : file_to_url.get(filename, "unknown"),
+            "title"    : file_to_title.get(filename, "No Title"),
             "filename" : filename
         })
 
@@ -62,15 +64,22 @@ def load_documents():
 def chunk_documents(documents, metadata):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size    = 1000,
-        chunk_overlap = 100,
+        chunk_overlap = 200,
     )
     all_chunks   = []
     all_metadata = []
 
     for text, meta in zip(documents, metadata):
+        # Prepend page title and source URL as context header for each chunk.
+        # This helps the embedding model and LLM understand which page
+        # and section each chunk belongs to.
+        title  = meta.get("title", "No Title")
+        source = meta.get("source", "unknown")
+        header = f"Page: {title}\nSource: {source}\n\n"
+
         chunks = splitter.split_text(text)
         for chunk in chunks:
-            all_chunks.append(chunk)
+            all_chunks.append(header + chunk)
             all_metadata.append(meta)
 
     print(f" Split into {len(all_chunks)} chunks")
