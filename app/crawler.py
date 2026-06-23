@@ -3,14 +3,19 @@
 import os
 import time
 import json
+import hashlib
+import logging
 import requests
 import tldextract
+from collections import deque
 from bs4 import BeautifulSoup
 from datetime import datetime
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
+
+logger = logging.getLogger(__name__)
 
 # ─── HEADERS ──────────────────────────────────────────────────────────────────
 
@@ -26,25 +31,80 @@ HEADERS = {
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 def get_base_domain(url):
+    """Return 'domain.suffix' (e.g. 'taylorswift.com') for robust comparison."""
     extracted = tldextract.extract(url)
-    return extracted.domain
+    return f"{extracted.domain}.{extracted.suffix}".lower()
 
 def is_same_domain(url, base_domain):
+    """Compare full registered domain (domain.suffix), not just the domain word."""
     extracted = tldextract.extract(url)
-    return extracted.domain == base_domain
+    url_domain = f"{extracted.domain}.{extracted.suffix}".lower()
+    return url_domain == base_domain
+
+def normalize_url(url):
+    """Normalize a URL to prevent duplicate crawling.
+    
+    - Strips fragment (#section)
+    - Normalizes trailing slashes on paths
+    - Lowercases scheme and host
+    - Removes default ports (80/443)
+    """
+    parsed = urlparse(url)
+    # Lowercase scheme and host
+    scheme = parsed.scheme.lower()
+    host   = parsed.hostname.lower() if parsed.hostname else ""
+    # Remove default ports
+    port   = parsed.port
+    if port in (80, 443, None):
+        netloc = host
+    else:
+        netloc = f"{host}:{port}"
+    # Normalize path: strip trailing slash (keep root "/")
+    path = parsed.path
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/")
+    # Drop fragment entirely, keep query
+    return urlunparse((scheme, netloc, path, parsed.params, parsed.query, ""))
 
 def clean_text(soup):
-    for tag in soup(["script", "style", "nav", "footer", "head"]):
+    """Extract meaningful text content from HTML, removing boilerplate."""
+    # Remove non-content tags
+    for tag in soup(["script", "style", "nav", "footer", "head",
+                     "aside", "header", "form", "iframe", "noscript"]):
         tag.decompose()
+
+    # Remove elements with common boilerplate CSS classes/IDs/roles
+    boilerplate_patterns = [
+        "sidebar", "breadcrumb", "cookie", "banner", "menu",
+        "social", "share", "widget", "popup", "modal", "advert",
+        "newsletter", "signup", "toolbar", "pagination"
+    ]
+    for element in soup.find_all(True, attrs={"class": True}):
+        classes = " ".join(element.get("class", [])).lower()
+        if any(pattern in classes for pattern in boilerplate_patterns):
+            element.decompose()
+    for element in soup.find_all(True, attrs={"id": True}):
+        elem_id = (element.get("id") or "").lower()
+        if any(pattern in elem_id for pattern in boilerplate_patterns):
+            element.decompose()
+
+    # Extract text from content-bearing tags
+    content_tags = ["p", "span", "div", "li", "td", "th",
+                    "h1", "h2", "h3", "h4", "h5", "h6",
+                    "blockquote", "article", "section"]
     blocks = []
-    for tag in soup.find_all(["p", "span", "div", "li", "h1", "h2", "h3", "blockquote"]):
+    seen = set()  # Deduplicate repeated text (e.g. nav items that survived)
+    for tag in soup.find_all(content_tags):
         text = tag.get_text(separator=" ").strip()
-        if len(text) > 30:
+        if len(text) > 30 and text not in seen:
             blocks.append(text)
+            seen.add(text)
+
     if blocks:
         combined = "\n\n".join(blocks)
     else:
         combined = soup.get_text(separator=" ")
+
     lines = [line.strip() for line in combined.splitlines()]
     lines = [line for line in lines if line]
     return "\n\n".join(lines)
@@ -100,7 +160,7 @@ def fetch_page(url):
         for a_tag in soup.find_all("a", href=True):
             href     = a_tag["href"].strip()
             full_url = urljoin(url, href)
-            links.append(full_url)
+            links.append(normalize_url(full_url))
         return url, text, title, links, None
     except requests.exceptions.Timeout:
         return url, None, None, None, "Timeout"
@@ -112,15 +172,16 @@ def fetch_page(url):
 # ─── MAIN CRAWLER ─────────────────────────────────────────────────────────────
 
 def crawl(start_url, progress_callback=None):
-    print(f"\n Starting crawl: {start_url}")
-    print(f" Max pages: {config.MAX_PAGES}")
+    logger.info("Starting crawl: %s", start_url)
+    logger.info("Max pages: %s", config.MAX_PAGES)
 
+    start_url   = normalize_url(start_url)
     base_domain = get_base_domain(start_url)
-    print(f" Base domain: {base_domain}\n")
+    logger.info("Base domain: %s", base_domain)
 
     visited    = set()
     queued     = {start_url}
-    to_visit   = [start_url]
+    to_visit   = deque([start_url])
     metadata   = load_metadata()
     page_count = 0
 
@@ -130,7 +191,7 @@ def crawl(start_url, progress_callback=None):
             # Take up to 5 URLs at once
             batch = []
             while to_visit and len(batch) < 5 and page_count + len(batch) < config.MAX_PAGES:
-                url = to_visit.pop(0)
+                url = to_visit.popleft()
                 if url in visited:
                     continue
                 if not url.startswith("http"):
@@ -154,9 +215,11 @@ def crawl(start_url, progress_callback=None):
                     log_error(url, error)
                     continue
 
-                # Save text
-                safe_name = urlparse(url).path.strip("/").replace("/", "_") or "homepage"
-                filename  = f"{safe_name}.txt"
+                # Save text with an MD5 hash of the URL as the filename.
+                # This guarantees a unique, collision-free name per URL and is
+                # idempotent if the same URL is crawled again.
+                page_count += 1
+                filename = hashlib.md5(url.encode()).hexdigest()[:12] + ".txt"
                 save_text(filename, text)
 
                 metadata.append({
@@ -167,20 +230,19 @@ def crawl(start_url, progress_callback=None):
                 })
                 save_metadata(metadata)
                 log_visited(url)
-                page_count += 1
 
-                print(f"[{page_count}] Crawled: {url}")
+                logger.info("[%d] Crawled: %s", page_count, url)
 
                 # Add new links
                 if links:
-                    for full_url in links:
+                    for link_url in links:
                         if (
-                            is_same_domain(full_url, base_domain)
-                            and full_url not in visited
-                            and full_url not in queued
+                            is_same_domain(link_url, base_domain)
+                            and link_url not in visited
+                            and link_url not in queued
                         ):
-                            to_visit.append(full_url)
-                            queued.add(full_url)
+                            to_visit.append(link_url)
+                            queued.add(link_url)
 
                 # Update progress
                 if progress_callback:
@@ -188,7 +250,7 @@ def crawl(start_url, progress_callback=None):
 
             time.sleep(0.2)
 
-    print(f"\n Crawl complete! Pages crawled: {page_count}")
+    logger.info("Crawl complete! Pages crawled: %d", page_count)
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 
