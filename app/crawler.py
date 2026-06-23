@@ -23,7 +23,10 @@ HEADERS = {
     "User-Agent"               : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept"                   : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language"          : "en-US,en;q=0.5",
-    "Accept-Encoding"          : "gzip, deflate, br",
+    # Only advertise encodings `requests` can decode without extra packages.
+    # Advertising "br" (brotli) without the brotli package installed causes
+    # requests to return undecoded compressed bytes -> garbage content.
+    "Accept-Encoding"          : "gzip, deflate",
     "Connection"               : "keep-alive",
     "Upgrade-Insecure-Requests": "1",
 }
@@ -152,8 +155,10 @@ def fetch_page(url):
         if "text/html" not in content_type:
             return url, None, None, None, f"Skipped: {content_type}"
         soup  = BeautifulSoup(response.text, "lxml")
-        text  = clean_text(soup)
+        # Extract the title BEFORE clean_text(), which decomposes <head>
+        # (and therefore <title>). Otherwise every page becomes "No Title".
         title = get_page_title(soup)
+        text  = clean_text(soup)
         if len(text) < 50:
             return url, None, None, None, "Too little content"
         links = []

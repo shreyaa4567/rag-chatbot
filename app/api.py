@@ -181,13 +181,23 @@ def run_pipeline(url):
         import time
         time.sleep(1)
 
-        for folder in [config.DATA_DIR, config.LOG_DIR]:
-           if os.path.exists(folder):
-             shutil.rmtree(folder)
-           os.makedirs(folder)
+        # Reset crawled data (safe — nothing holds these files open).
+        if os.path.exists(config.DATA_DIR):
+            shutil.rmtree(config.DATA_DIR)
+        os.makedirs(config.DATA_DIR, exist_ok=True)
 
-        if not os.path.exists(config.CHROMA_DIR):
-           os.makedirs(config.CHROMA_DIR)
+        # Clear only the per-crawl log files. We must NOT rmtree LOG_DIR:
+        # the logging RotatingFileHandler holds app.log open, and on Windows
+        # deleting an in-use file raises WinError 32, breaking the pipeline.
+        os.makedirs(config.LOG_DIR, exist_ok=True)
+        for log_file in (config.VISITED_LOG, config.ERROR_LOG):
+            try:
+                if os.path.exists(log_file):
+                    os.remove(log_file)
+            except OSError:
+                logger.warning("Could not clear log file %s", log_file)
+
+        os.makedirs(config.CHROMA_DIR, exist_ok=True)
 
         # ── Step 2: Crawl ──
         set_progress(percent=5, message="Crawling website...")

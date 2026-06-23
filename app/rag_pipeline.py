@@ -75,6 +75,8 @@ def chunk_documents(documents, metadata):
     )
     all_chunks   = []
     all_metadata = []
+    seen_bodies  = set()
+    duplicates   = 0
 
     for text, meta in zip(documents, metadata):
         # Prepend page title and source URL as context header for each chunk.
@@ -86,10 +88,19 @@ def chunk_documents(documents, metadata):
 
         chunks = splitter.split_text(text)
         for chunk in chunks:
+            # Deduplicate by chunk body (ignoring the header). The same quote
+            # or paragraph often repeats across paginated/tag pages; identical
+            # chunks waste embeddings and can crowd out the top-k results.
+            key = chunk.strip()
+            if not key or key in seen_bodies:
+                duplicates += 1
+                continue
+            seen_bodies.add(key)
             all_chunks.append(header + chunk)
             all_metadata.append(meta)
 
-    logger.info("Split into %d chunks", len(all_chunks))
+    logger.info("Split into %d unique chunks (%d duplicates removed)",
+                len(all_chunks), duplicates)
     return all_chunks, all_metadata
 
 # ─── BUILD VECTORSTORE ────────────────────────────────────────────────────────
@@ -99,12 +110,18 @@ def build_vectorstore(chunks, metadatas, progress_callback=None, batch_size=50):
     logger.info("Embedding %d chunks in batches of %d...", len(chunks), batch_size)
 
     client     = chromadb.PersistentClient(path=config.CHROMA_DIR)
-    # Delete old collection if exists, create fresh one
+    # Delete old collection if exists, create fresh one.
     try:
         client.delete_collection("rag_collection")
-    except:
+    except Exception:
         pass
-    collection = client.create_collection("rag_collection")
+    # Use cosine distance: nomic-embed vectors are unnormalized, so the
+    # default L2 metric yields distances in the hundreds, making a sane
+    # relevance threshold impossible. Cosine distance is bounded to [0, 2].
+    collection = client.create_collection(
+        "rag_collection",
+        metadata={"hnsw:space": "cosine"},
+    )
 
     total = len(chunks)
 
@@ -139,20 +156,25 @@ def load_vectorstore():
 
 # ─── SEARCH ───────────────────────────────────────────────────────────────────
 
-def search(query, collection, k=5, max_distance=1.0):
+def search(query, collection, k=None, max_distance=None):
     """Search for relevant chunks with distance-based quality filtering.
 
     Args:
         query: The search query text.
         collection: ChromaDB collection to search.
-        k: Number of candidate results to retrieve (default 5).
-        max_distance: Maximum distance threshold — chunks with distance
-                      above this are filtered out as irrelevant (default 1.0).
+        k: Number of candidate results to retrieve (default config.RETRIEVAL_K).
+        max_distance: Maximum cosine distance — chunks above this are filtered
+                      out as irrelevant (default config.MAX_DISTANCE, [0, 2]).
 
     Returns:
         ChromaDB-style results dict with 'documents', 'metadatas',
         'distances' lists, filtered to only include relevant results.
     """
+    if k is None:
+        k = config.RETRIEVAL_K
+    if max_distance is None:
+        max_distance = config.MAX_DISTANCE
+
     query_embedding = get_embedding(query)
     results = collection.query(
         query_embeddings = [query_embedding],
