@@ -3,6 +3,8 @@
 import os
 import time
 import json
+import hashlib
+import logging
 import requests
 import tldextract
 from collections import deque
@@ -12,6 +14,8 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
+
+logger = logging.getLogger(__name__)
 
 # ─── HEADERS ──────────────────────────────────────────────────────────────────
 
@@ -168,12 +172,12 @@ def fetch_page(url):
 # ─── MAIN CRAWLER ─────────────────────────────────────────────────────────────
 
 def crawl(start_url, progress_callback=None):
-    print(f"\n Starting crawl: {start_url}")
-    print(f" Max pages: {config.MAX_PAGES}")
+    logger.info("Starting crawl: %s", start_url)
+    logger.info("Max pages: %s", config.MAX_PAGES)
 
     start_url   = normalize_url(start_url)
     base_domain = get_base_domain(start_url)
-    print(f" Base domain: {base_domain}\n")
+    logger.info("Base domain: %s", base_domain)
 
     visited    = set()
     queued     = {start_url}
@@ -211,9 +215,11 @@ def crawl(start_url, progress_callback=None):
                     log_error(url, error)
                     continue
 
-                # Save text with unique sequential filename to prevent collisions
+                # Save text with an MD5 hash of the URL as the filename.
+                # This guarantees a unique, collision-free name per URL and is
+                # idempotent if the same URL is crawled again.
                 page_count += 1
-                filename = f"page_{page_count:04d}.txt"
+                filename = hashlib.md5(url.encode()).hexdigest()[:12] + ".txt"
                 save_text(filename, text)
 
                 metadata.append({
@@ -225,7 +231,7 @@ def crawl(start_url, progress_callback=None):
                 save_metadata(metadata)
                 log_visited(url)
 
-                print(f"[{page_count}] Crawled: {url}")
+                logger.info("[%d] Crawled: %s", page_count, url)
 
                 # Add new links
                 if links:
@@ -244,7 +250,7 @@ def crawl(start_url, progress_callback=None):
 
             time.sleep(0.2)
 
-    print(f"\n Crawl complete! Pages crawled: {page_count}")
+    logger.info("Crawl complete! Pages crawled: %d", page_count)
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 

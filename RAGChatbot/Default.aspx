@@ -1,178 +1,428 @@
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
-        .chat-container {
-            max-width: 800px;
-            margin: 30px auto;
-            font-family: Arial, sans-serif;
+        :root {
+            --bg-1: #0b1026;
+            --bg-2: #1a0b2e;
+            --bg-3: #240b36;
+            --accent-blue: #4f7cff;
+            --accent-purple: #a855f7;
+            --glass-bg: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #eef1ff;
+            --text-dim: #9aa3c7;
         }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Apply the dark gradient backdrop to the whole page */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+            background-attachment: fixed;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-main);
+        }
+
+        /* Soft animated glow blobs behind the card */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            z-index: 0;
+            pointer-events: none;
+        }
+        body::before {
+            width: 420px; height: 420px;
+            background: var(--accent-blue);
+            top: -120px; left: -100px;
+            animation: float1 14s ease-in-out infinite;
+        }
+        body::after {
+            width: 480px; height: 480px;
+            background: var(--accent-purple);
+            bottom: -160px; right: -120px;
+            animation: float2 16s ease-in-out infinite;
+        }
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0); }
+            50%      { transform: translate(40px, 60px); }
+        }
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0); }
+            50%      { transform: translate(-50px, -40px); }
+        }
+
+        .rag-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+
+        .rag-header {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+        .rag-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 0 6px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .rag-header p {
+            margin: 0;
+            color: var(--text-dim);
+            font-size: 0.98rem;
+        }
+
+        /* Glassmorphism card */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            padding: 22px;
+        }
+
+        /* ─── URL row ─── */
         .url-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
         .url-row input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1em;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text-main);
+            font-size: 0.98rem;
+            outline: none;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
         }
-        .url-row button {
-            padding: 10px 20px;
-            background: #28a745;
-            color: white;
+        .url-row input::placeholder { color: var(--text-dim); }
+        .url-row input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.25),
+                        0 0 22px rgba(79, 124, 255, 0.45);
+        }
+
+        .btn-gradient {
             border: none;
-            border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.98rem;
+            padding: 14px 22px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            background-size: 180% 180%;
+            transition: transform 0.18s ease, box-shadow 0.25s ease, background-position 0.5s ease;
+            box-shadow: 0 6px 18px rgba(99, 80, 255, 0.4);
+            white-space: nowrap;
         }
-        .url-row button:hover { background: #218838; }
-        .progress-container {
-            display: none;
-            margin-bottom: 20px;
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            background-position: right center;
+            box-shadow: 0 10px 26px rgba(99, 80, 255, 0.6);
         }
+        .btn-gradient:active { transform: translateY(0); }
+        .btn-gradient:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ─── Status indicator ─── */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+        }
+        .status-dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: #6b7280;
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+        }
+        .status-dot.live {
+            background: #22c55e;
+            animation: pulse 1.8s infinite;
+        }
+        .status-dot.busy { background: #f59e0b; }
+        .status-dot.error { background: #ef4444; }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+            70%  { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* ─── Progress bar ─── */
+        .progress-container { display: none; margin-top: 18px; }
         .progress-label {
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 5px;
+            font-size: 0.88rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
         }
         .progress-bar-outer {
             width: 100%;
-            background: #e9ecef;
-            border-radius: 8px;
-            height: 22px;
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
         .progress-bar-inner {
             height: 100%;
-            background: #007bff;
-            border-radius: 8px;
             width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-blue));
+            background-size: 200% 100%;
+            animation: slideGradient 2s linear infinite;
             transition: width 0.4s ease;
         }
+        @keyframes slideGradient {
+            0%   { background-position: 0% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ─── Chat box ─── */
         .chat-box {
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 15px;
-            background: #f9f9f9;
-            margin-bottom: 15px;
             display: none;
+            height: 440px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            margin-top: 18px;
+            padding: 6px 4px;
         }
+        .chat-box::-webkit-scrollbar { width: 8px; }
+        .chat-box::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+        }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+
         .message {
-            margin-bottom: 15px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            max-width: 80%;
-            line-height: 1.5;
+            max-width: 78%;
+            margin-bottom: 16px;
+            padding: 13px 16px;
+            line-height: 1.55;
+            font-size: 0.96rem;
+            border-radius: 18px;
+            animation: msgIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            word-wrap: break-word;
         }
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         .user-message {
-            background: #007bff;
-            color: white;
             margin-left: auto;
-            text-align: right;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 6px 18px rgba(99, 80, 255, 0.35);
         }
         .bot-message {
-            background: #e9ecef;
-            color: #333;
+            margin-right: auto;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-main);
+            border-bottom-left-radius: 6px;
         }
+
+        /* Source pill badges */
         .sources {
-            font-size: 0.75em;
-            color: #666;
-            margin-top: 5px;
-        }
-        .input-row {
+            margin-top: 10px;
             display: flex;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .sources a {
+            font-size: 0.72rem;
+            text-decoration: none;
+            color: #cdd6ff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(79, 124, 255, 0.18);
+            border: 1px solid rgba(79, 124, 255, 0.35);
+            transition: background 0.2s ease, transform 0.2s ease;
+            max-width: 240px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sources a:hover {
+            background: rgba(79, 124, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* Typing indicator */
+        .typing {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .typing span {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            animation: blink 1.4s infinite both;
+        }
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+            40%           { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* ─── Input row ─── */
+        .input-row {
             display: none;
+            gap: 12px;
+            margin-top: 16px;
         }
         .input-row input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1em;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text-main);
+            font-size: 0.98rem;
+            outline: none;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
         }
-        .input-row button {
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1em;
+        .input-row input::placeholder { color: var(--text-dim); }
+        .input-row input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25),
+                        0 0 22px rgba(168, 85, 247, 0.4);
         }
-        .input-row button:hover { background: #0056b3; }
-        .thinking {
-            color: #999;
-            font-style: italic;
-        }
-        .status-text {
-            font-size: 0.85em;
-            color: #666;
-            margin-top: 6px;
+
+        /* ─── Responsive ─── */
+        @media (max-width: 600px) {
+            .rag-wrap { margin: 20px auto; }
+            .rag-header h1 { font-size: 1.7rem; }
+            .url-row, .input-row { flex-direction: column; }
+            .btn-gradient { width: 100%; }
+            .message { max-width: 90%; }
+            .chat-box { height: 60vh; }
         }
     </style>
 
-    <div class="chat-container">
-        <h2>RAG Chatbot</h2>
-        <p>Enter any website URL to start chatting with it.</p>
-
-        <!-- URL Input -->
-        <div class="url-row">
-            <input type="text" id="urlInput" placeholder="https://example.com" />
-            <button type="button" onclick="loadWebsite()">Load Website</button>
+    <div class="rag-wrap">
+        <div class="rag-header">
+            <h1>Website-Aware RAG Chatbot</h1>
+            <p>Load any website, then chat with its content.</p>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-label" id="progressLabel">Starting...</div>
-            <div class="progress-bar-outer">
-                <div class="progress-bar-inner" id="progressBar"></div>
+        <div class="glass-card">
+            <!-- URL Input -->
+            <div class="url-row">
+                <input type="text" id="urlInput" placeholder="https://example.com" />
+                <button type="button" id="loadBtn" class="btn-gradient" onclick="loadWebsite()">Load Website</button>
             </div>
-            <div class="status-text" id="statusText"></div>
-        </div>
 
-        <!-- Chat Box -->
-        <div class="chat-box" id="chatBox">
-            <div class="message bot-message">
-                Hello! Ask me anything about the website.
+            <!-- Status indicator -->
+            <div class="status-pill">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusLabel">No website loaded</span>
             </div>
-        </div>
 
-        <!-- Message Input -->
-        <div class="input-row" id="inputRow">
-            <input type="text" id="questionInput" placeholder="Type your question..."
-                   onkeypress="handleKey(event)" />
-            <button type="button" onclick="sendMessage()">Send</button>
+            <!-- Progress Bar -->
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-label" id="progressLabel">Starting...</div>
+                <div class="progress-bar-outer">
+                    <div class="progress-bar-inner" id="progressBar"></div>
+                </div>
+            </div>
+
+            <!-- Chat Box -->
+            <div class="chat-box" id="chatBox">
+                <div class="message bot-message">
+                    Hello! Load a website above, then ask me anything about it.
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="input-row" id="inputRow">
+                <input type="text" id="questionInput" placeholder="Type your question..."
+                       onkeypress="handleKey(event)" />
+                <button type="button" class="btn-gradient" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ─── CONFIGURATION ──────────────────────────────────────────
+        // Change this to point at your Flask API (e.g. when deployed).
         const API_URL = "http://localhost:5000";
+
         let progressInterval = null;
+
+        // ─── Status helpers ─────────────────────────────────────────
+        function setStatus(state, label) {
+            const dot = document.getElementById("statusDot");
+            dot.className = "status-dot" + (state ? " " + state : "");
+            document.getElementById("statusLabel").innerText = label;
+        }
 
         function loadWebsite() {
             const url = document.getElementById("urlInput").value.trim();
             if (!url) { alert("Please enter a URL first."); return; }
 
-            // Show progress bar, hide chat
+            document.getElementById("loadBtn").disabled = true;
             document.getElementById("progressContainer").style.display = "block";
             document.getElementById("chatBox").style.display = "none";
             document.getElementById("inputRow").style.display = "none";
             setProgress(0, "Starting pipeline...");
+            setStatus("busy", "Loading " + url + " ...");
 
             fetch(API_URL + "/load", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ url: url })
-            }).then(() => {
-                // Start polling progress
+            }).then(r => r.json()).then(data => {
+                if (data.error) {
+                    setProgress(0, "Error: " + data.error);
+                    setStatus("error", data.error);
+                    document.getElementById("loadBtn").disabled = false;
+                    return;
+                }
                 progressInterval = setInterval(pollProgress, 1500);
             }).catch(() => {
                 setProgress(0, "Error: Could not connect to API.");
+                setStatus("error", "Could not connect to API");
+                document.getElementById("loadBtn").disabled = false;
             });
         }
 
@@ -184,11 +434,16 @@
 
                     if (data.status === "ready") {
                         clearInterval(progressInterval);
-                        setTimeout(showChat, 800);
+                        document.getElementById("loadBtn").disabled = false;
+                        const loaded = data.url || document.getElementById("urlInput").value.trim();
+                        setStatus("live", "Loaded: " + loaded);
+                        setTimeout(showChat, 600);
                     }
                     if (data.status === "error") {
                         clearInterval(progressInterval);
+                        document.getElementById("loadBtn").disabled = false;
                         document.getElementById("progressLabel").innerText = "Error: " + data.message;
+                        setStatus("error", data.message);
                     }
                 });
         }
@@ -216,9 +471,14 @@
             if (sources && sources.length > 0) {
                 const srcDiv = document.createElement("div");
                 srcDiv.className = "sources";
-                srcDiv.innerHTML = "Sources: " + sources.map(s =>
-                    '<a href="' + s + '" target="_blank">' + s + '</a>'
-                ).join(", ");
+                sources.forEach(s => {
+                    const a = document.createElement("a");
+                    a.href = s;
+                    a.target = "_blank";
+                    a.rel = "noopener";
+                    a.innerText = s;
+                    srcDiv.appendChild(a);
+                });
                 div.appendChild(srcDiv);
             }
             chatBox.appendChild(div);
@@ -228,9 +488,9 @@
         function addThinking() {
             const chatBox = document.getElementById("chatBox");
             const div = document.createElement("div");
-            div.className = "message bot-message thinking";
+            div.className = "message bot-message";
             div.id = "thinkingMsg";
-            div.innerText = "Thinking...";
+            div.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -255,7 +515,11 @@
                 });
                 const data = await response.json();
                 removeThinking();
-                addMessage(data.answer, false, data.sources);
+                if (data.error) {
+                    addMessage("Error: " + data.error, false);
+                } else {
+                    addMessage(data.answer, false, data.sources);
+                }
             } catch (error) {
                 removeThinking();
                 addMessage("Error: Could not connect to API.", false);

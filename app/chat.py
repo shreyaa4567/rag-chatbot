@@ -1,8 +1,11 @@
 # app/chat.py
 
+import logging
 import ollama
 import config
 from app.rag_pipeline import load_vectorstore, search
+
+logger = logging.getLogger(__name__)
 
 # ─── STATE ────────────────────────────────────────────────────────────────────
 
@@ -17,34 +20,34 @@ def init():
 
     # Load vectorstore if it exists
     try:
-        print("\n Loading ChromaDB vectorstore...")
+        logger.info("Loading ChromaDB vectorstore...")
         collection = load_vectorstore()
-        print(" Vectorstore loaded.")
+        logger.info("Vectorstore loaded.")
     except Exception as e:
-        print(f" ChromaDB not available yet: {e}")
+        logger.warning("ChromaDB not available yet: %s", e)
         collection = None
 
     # Warm up model (always useful — do once)
     if not _model_warmed_up:
         try:
-            print(f" Warming up {config.LLM_MODEL}...")
+            logger.info("Warming up %s...", config.LLM_MODEL)
             ollama.chat(
                 model    = config.LLM_MODEL,
                 messages = [{"role": "user", "content": "hi"}],
                 options  = {"num_predict": 1}
             )
-            print(f" Model ready.")
+            logger.info("Model ready.")
             _model_warmed_up = True
         except Exception as e:
-            print(f" Model warmup failed: {e}")
+            logger.warning("Model warmup failed: %s", e)
 
 # ─── RELOAD COLLECTION (called after new website is loaded) ───────────────────
 
 def reload_collection():
     global collection
-    print("\n Reloading ChromaDB collection...")
+    logger.info("Reloading ChromaDB collection...")
     collection = load_vectorstore()
-    print(" Collection reloaded.")
+    logger.info("Collection reloaded.")
 
 # ─── READINESS CHECK ──────────────────────────────────────────────────────────
 
@@ -74,7 +77,7 @@ def chat(question):
     if collection is None:
         raise RuntimeError("No website loaded yet. Please load a website first.")
 
-    results = search(question, collection, k=6)
+    results = search(question, collection, k=5)
 
     # Handle case where all results were filtered out by distance threshold
     if not results["documents"][0]:

@@ -1,18 +1,26 @@
 # app/api.py
 
 import os
+import socket
 import shutil
+import logging
+import ipaddress
 import threading
+from urllib.parse import urlparse
+
 import config
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from app.chat import chat, reload_collection, init as init_chat, is_ready
 
+logger = logging.getLogger(__name__)
+
 # ─── FLASK SETUP ──────────────────────────────────────────────────────────────
 
 app = Flask(__name__)
-CORS(app)
+# Restrict CORS to the ASP.NET WebForms frontend origin only.
+CORS(app, resources={r"/*": {"origins": config.FRONTEND_ORIGIN}})
 
 # ─── THREAD-SAFE PROGRESS TRACKING ───────────────────────────────────────────
 
@@ -25,6 +33,48 @@ _progress = {
     "message"  : "",
     "url"      : ""
 }
+
+# ─── SSRF PROTECTION ──────────────────────────────────────────────────────────
+
+def is_safe_url(url):
+    """Reject URLs that resolve to private/internal addresses (SSRF guard).
+
+    Blocks localhost, link-local (169.254.x.x), and the RFC 1918 private
+    ranges (10.x, 172.16–31.x, 192.168.x) as well as other reserved/
+    loopback addresses. Returns (ok: bool, reason: str).
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return False, "Only http and https URLs are allowed."
+
+    host = parsed.hostname
+    if not host:
+        return False, "URL has no host."
+
+    try:
+        # Resolve every address the host maps to and check them all.
+        infos = socket.getaddrinfo(host, None)
+    except socket.gaierror:
+        return False, "Could not resolve host."
+
+    for info in infos:
+        addr = info[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            continue
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            return False, "URL points to a private or internal address."
+
+    return True, ""
+
 
 def get_progress_snapshot():
     """Return a thread-safe copy of the current progress."""
@@ -74,6 +124,12 @@ def load_website():
     url = data["url"].strip()
     if not url.startswith("http"):
         return jsonify({"error": "Invalid URL. Must start with http or https"}), 400
+
+    # SSRF guard: block private/internal targets
+    ok, reason = is_safe_url(url)
+    if not ok:
+        logger.warning("Blocked unsafe URL %s: %s", url, reason)
+        return jsonify({"error": reason}), 400
 
     # Prevent concurrent pipeline runs
     if not _pipeline_lock.acquire(blocking=False):
@@ -152,6 +208,7 @@ def run_pipeline(url):
         set_progress(status="ready", percent=100, message="Ready! Ask your questions.")
 
     except Exception as e:
+        logger.exception("Pipeline failed for %s", url)
         set_progress(status="error", percent=0, message=f"Error: {str(e)}")
     finally:
         _pipeline_lock.release()
@@ -175,5 +232,23 @@ def update_embed_progress(chunks_done, total_chunks):
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 
+def run_dev():
+    """Run the built-in Flask dev server (not for production)."""
+    logger.info("Starting Flask dev server on %s:%s", config.HOST, config.PORT)
+    app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
+
+
+def run_prod():
+    """Run via Waitress — a production WSGI server that works on Windows."""
+    from waitress import serve
+    logger.info("Starting Waitress production server on %s:%s", config.HOST, config.PORT)
+    serve(app, host=config.HOST, port=config.PORT)
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # Use Waitress in production (set USE_WAITRESS=true in .env), else the
+    # Flask dev server. On Windows, Waitress is the recommended WSGI server.
+    if config._get_bool("USE_WAITRESS", False):
+        run_prod()
+    else:
+        run_dev()

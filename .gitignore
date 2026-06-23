@@ -9,6 +9,10 @@ chroma_db/
 
 # Generated logs
 logs/*.txt
+logs/*.log
+
+# Environment variables (keep .env.example tracked)
+.env
 
 # Python cache
 __pycache__/

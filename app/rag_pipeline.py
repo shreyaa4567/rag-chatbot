@@ -3,23 +3,30 @@
 import os
 import json
 import shutil
+import logging
 import ollama
 import config
 import chromadb
 
+from concurrent.futures import ThreadPoolExecutor
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+logger = logging.getLogger(__name__)
+
+# Number of concurrent embedding requests sent to Ollama.
+EMBED_WORKERS = 5
 
 # ─── EMBEDDING ────────────────────────────────────────────────────────────────
 
 def get_embeddings_batch(texts):
-    """Get embeddings for a batch of texts."""
-    embeddings = []
-    for text in texts:
-        response = ollama.embeddings(
-            model  = config.EMBED_MODEL,
-            prompt = text
-        )
-        embeddings.append(response["embedding"])
+    """Get embeddings for a batch of texts in parallel.
+
+    Embedding calls are I/O-bound (HTTP requests to Ollama), so a thread
+    pool lets several run concurrently. Order is preserved so embeddings
+    line up with their source chunks.
+    """
+    with ThreadPoolExecutor(max_workers=EMBED_WORKERS) as executor:
+        embeddings = list(executor.map(get_embedding, texts))
     return embeddings
 
 def get_embedding(text):
@@ -56,7 +63,7 @@ def load_documents():
             "filename" : filename
         })
 
-    print(f" Loaded {len(documents)} documents from {config.DATA_DIR}/")
+    logger.info("Loaded %d documents from %s/", len(documents), config.DATA_DIR)
     return documents, metadata
 
 # ─── CHUNK DOCUMENTS ──────────────────────────────────────────────────────────
@@ -64,7 +71,7 @@ def load_documents():
 def chunk_documents(documents, metadata):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size    = 1000,
-        chunk_overlap = 200,
+        chunk_overlap = 150,
     )
     all_chunks   = []
     all_metadata = []
@@ -82,14 +89,14 @@ def chunk_documents(documents, metadata):
             all_chunks.append(header + chunk)
             all_metadata.append(meta)
 
-    print(f" Split into {len(all_chunks)} chunks")
+    logger.info("Split into %d chunks", len(all_chunks))
     return all_chunks, all_metadata
 
 # ─── BUILD VECTORSTORE ────────────────────────────────────────────────────────
 
 def build_vectorstore(chunks, metadatas, progress_callback=None, batch_size=50):
 
-    print(f" Embedding {len(chunks)} chunks in batches of {batch_size}...")
+    logger.info("Embedding %d chunks in batches of %d...", len(chunks), batch_size)
 
     client     = chromadb.PersistentClient(path=config.CHROMA_DIR)
     # Delete old collection if exists, create fresh one
@@ -116,12 +123,12 @@ def build_vectorstore(chunks, metadatas, progress_callback=None, batch_size=50):
         )
 
         done = min(i + batch_size, total)
-        print(f"   Embedded {done}/{total} chunks...")
+        logger.info("Embedded %d/%d chunks...", done, total)
 
         if progress_callback:
             progress_callback(done, total)
 
-    print(f" Vectorstore built and saved to {config.CHROMA_DIR}/")
+    logger.info("Vectorstore built and saved to %s/", config.CHROMA_DIR)
     return collection
 
 # ─── LOAD VECTORSTORE ─────────────────────────────────────────────────────────
@@ -132,15 +139,15 @@ def load_vectorstore():
 
 # ─── SEARCH ───────────────────────────────────────────────────────────────────
 
-def search(query, collection, k=6, max_distance=1.5):
+def search(query, collection, k=5, max_distance=1.0):
     """Search for relevant chunks with distance-based quality filtering.
 
     Args:
         query: The search query text.
         collection: ChromaDB collection to search.
-        k: Number of candidate results to retrieve (default 6).
+        k: Number of candidate results to retrieve (default 5).
         max_distance: Maximum distance threshold — chunks with distance
-                      above this are filtered out as irrelevant (default 1.5).
+                      above this are filtered out as irrelevant (default 1.0).
 
     Returns:
         ChromaDB-style results dict with 'documents', 'metadatas',
@@ -177,8 +184,8 @@ def search(query, collection, k=6, max_distance=1.5):
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("\n Starting RAG pipeline...\n")
+    logger.info("Starting RAG pipeline...")
     documents, metadata = load_documents()
     chunks, chunk_meta  = chunk_documents(documents, metadata)
     collection          = build_vectorstore(chunks, chunk_meta)
-    print(" RAG pipeline complete.\n")
+    logger.info("RAG pipeline complete.")
