@@ -1,183 +1,232 @@
-# RAG Chatbot — Website-Aware Question Answering System
+<div align="center">
 
-A Retrieval-Augmented Generation (RAG) chatbot that crawls any website and answers questions based solely on its content. Built with Ollama, Gemma3, ChromaDB, Flask, and ASP.NET.
+# 🧠 Website-Aware RAG Chatbot
 
----
+**Crawl any website, then chat with its content — answers grounded in real sources, running 100% locally.**
 
-## What It Does
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/API-Flask-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Ollama](https://img.shields.io/badge/LLM-Ollama%20%C2%B7%20gemma3-4f7cff)](https://ollama.com/)
+[![ChromaDB](https://img.shields.io/badge/Vectors-ChromaDB-a855f7)](https://www.trychroma.com/)
+[![Tests](https://img.shields.io/badge/tests-25%20passing-2ea44f)](tests/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-```
-Any Website URL
-      ↓
-Crawler reads all pages
-      ↓
-Text split into chunks
-      ↓
-Embeddings created (nomic-embed-text)
-      ↓
-Stored in ChromaDB
-      ↓
-User asks a question (ASPX frontend)
-      ↓
-Relevant chunks retrieved via semantic search
-      ↓
-Gemma3:4b generates answer
-      ↓
-Answer + Source URLs shown to user
-```
+<img src="docs/images/demo-conversation.jpg" alt="RAG Chatbot conversation" width="420"/>
+
+</div>
 
 ---
 
-## Tech Stack
+## ✨ Overview
 
-| Component     | Technology                          |
-|---------------|-------------------------------------|
-| LLM           | Gemma3:4b via Ollama                |
-| Embeddings    | nomic-embed-text via Ollama         |
-| Vector Store  | ChromaDB                            |
-| Web Crawler   | BeautifulSoup + requests + tldextract |
-| API           | Flask + flask-cors                  |
-| Frontend      | ASP.NET WebForms (ASPX)             |
+This is a **Retrieval-Augmented Generation (RAG)** chatbot that turns *any* website into a question-answering assistant. Paste a URL, and the backend crawls the site, builds a semantic index, and answers your questions using only that site's content — with **source attribution** and a **hallucination guard** that refuses to answer when the information isn't there.
 
----
+Everything runs **locally** via [Ollama](https://ollama.com/) — no API keys, no data leaving your machine.
 
-## Project Structure
-
-```
-rag_chatbot/
-│
-├── app/
-│   ├── crawler.py        # Crawls website, saves text files
-│   ├── rag_pipeline.py   # Chunks text, builds embeddings, stores in ChromaDB
-│   ├── chat.py           # Handles question → search → answer generation
-│   └── api.py            # Flask REST API (/chat, /health)
-│
-├── data/                 # Crawled text files saved here
-├── chroma_db/            # ChromaDB vector store
-├── logs/                 # Visited URLs and error logs
-│
-├── config.py             # All settings (URL, models, paths)
-├── requirements.txt      # Python dependencies
-└── venv/                 # Virtual environment
-```
+| | |
+|---|---|
+| 🔎 **Grounded answers** | Responses cite the exact source URLs they came from |
+| 🛡️ **Won't hallucinate** | Says "I don't have enough information" when the answer isn't on the site |
+| 🔒 **Private by design** | Local LLM + embeddings; SSRF-guarded crawler; CORS-restricted API |
+| ⚡ **Live ingestion** | Enter a URL in the UI and watch crawl → embed → ready in real time |
+| 🎨 **Polished UI** | Glassmorphism frontend that runs with zero build tooling |
 
 ---
 
-## Features
+## 🏗️ Architecture
 
-- **Web Crawler** — Crawls internal pages of any website, skips PDFs/images
-- **Smart Chunking** — Splits pages into 1000-char chunks with overlap
-- **Semantic Search** — Finds most relevant chunks for any question
-- **Hallucination Guard** — Says "I don't have enough information" if answer not found in website
-- **Source Attribution** — Shows which URL the answer came from
-- **Fast Responses** — Model warmup at startup, optimized chunk retrieval
-- **CORS Enabled** — Frontend and backend can run on different ports
-- **REST API** — Clean `/chat` and `/health` endpoints
+<div align="center">
+<img src="docs/images/architecture.svg" alt="Architecture diagram" width="900"/>
+</div>
+
+The system has two clear paths:
+
+- **Ingestion (`POST /load`)** — a BFS crawler fetches same-domain pages → text is cleaned and chunked (with page title/URL prepended for context) → duplicate chunks are dropped → chunks are embedded in parallel → stored in a persistent ChromaDB collection using **cosine** distance.
+- **Query (`POST /chat`)** — the question is embedded → ChromaDB returns the top-k nearest chunks (filtered by a distance threshold) → a grounded prompt is built → the local LLM produces an answer plus source URLs.
 
 ---
 
-## Setup & Usage
+## 🧰 Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| LLM | `gemma3:4b` via Ollama |
+| Embeddings | `nomic-embed-text` via Ollama |
+| Vector store | ChromaDB (persistent, cosine space) |
+| Crawler | requests + BeautifulSoup + lxml + tldextract |
+| API | Flask + flask-cors |
+| Prod server | Waitress (Windows-friendly WSGI) |
+| Config | python-dotenv (`.env`) |
+| Frontend | Static HTML/CSS/JS (+ ASP.NET WebForms variant) |
+| Tests | pytest |
+
+---
+
+## 📸 Screenshots
+
+| Landing | In conversation |
+|---------|-----------------|
+| <img src="docs/images/demo-landing.jpg" width="360"/> | <img src="docs/images/demo-conversation.jpg" width="360"/> |
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.10+
-- [Ollama](https://ollama.com/) installed
-- ASP.NET / Visual Studio (for frontend)
+- [Ollama](https://ollama.com/) installed and running
 
-### Install Ollama Models
+### 1. Pull the models
 ```bash
 ollama pull gemma3:4b
 ollama pull nomic-embed-text
 ```
 
-### Install Python Dependencies
+### 2. Install dependencies
 ```bash
-cd rag_chatbot
 python -m venv venv
+# Windows:
 venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-### Configure Target Website
-Edit `config.py`:
-```python
-TARGET_URL = "https://your-target-website.com/"
-MAX_PAGES  = 50
-LLM_MODEL  = "gemma3:4b"
-```
-
-### Run the Pipeline
+### 3. (Optional) Configure
 ```bash
-# Step 1: Crawl the website
-python -m app.crawler
+cp .env.example .env      # tweak models, page limits, CORS origin, etc.
+```
+All settings have sensible defaults, so a `.env` is optional for local use.
 
-# Step 2: Build embeddings
-python -m app.rag_pipeline
-
-# Step 3: Start Flask API
-python -m app.api
+### 4. Start the API
+```bash
+python -m app.api                 # Flask dev server on :5000
+# or set USE_WAITRESS=true in .env for the production server
 ```
 
-### Run the Frontend
-Open the ASP.NET project in Visual Studio and press **F5**.
+### 5. Open the frontend
+```bash
+python -m http.server 8090 --directory frontend
+# then visit http://localhost:8090
+```
+> Set `FRONTEND_ORIGIN=http://localhost:8090` in `.env` so CORS allows the page.
+> Point the UI at a non-default API with `?api=http://host:port`.
+
+Paste a URL → **Load Website** → ask away. 🎉
 
 ---
 
-## API Endpoints
+## 🔌 API Reference
 
-| Method | Endpoint  | Description              |
-|--------|-----------|--------------------------|
-| GET    | /         | API status               |
-| GET    | /health   | Health check + model info |
-| POST   | /chat     | Ask a question           |
+Base URL: `http://localhost:5000`
 
-### Example Request
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/` | Service status |
+| `GET`  | `/health` | Health check + active model names |
+| `POST` | `/load` | Crawl + embed a website (SSRF-guarded, one job at a time) |
+| `GET`  | `/progress` | Live pipeline status & percentage (for the UI) |
+| `POST` | `/chat` | Ask a question about the loaded site |
+
+**Load a site**
+```bash
+curl -X POST http://localhost:5000/load \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://quotes.toscrape.com"}'
+```
+
+**Ask a question**
+```bash
+curl -X POST http://localhost:5000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What are the two ways to live your life according to Einstein?"}'
+```
 ```json
-POST /chat
 {
-  "question": "What is IIT Delhi known for?"
+  "answer": "“There are only two ways to live your life. One is as though nothing is a miracle. The other is as though everything is a miracle.”",
+  "sources": ["http://quotes.toscrape.com/tag/life/page/1", "http://quotes.toscrape.com/"]
 }
 ```
 
-### Example Response
-```json
-{
-  "answer": "IIT Delhi is known for...",
-  "sources": ["https://home.iitd.ac.in/about.php"]
-}
+---
+
+## 🧪 Testing
+
+```bash
+pytest -q
+```
+A focused suite (25 tests) covers URL normalization, same-domain matching, the SSRF guard, and chunk deduplication — the pure logic that protects correctness and security:
+
+```
+25 passed in 1.6s
+```
+
+End-to-end behavior was verified manually against `quotes.toscrape.com`: load → crawl → embed → chat all succeed, answers are grounded with correct sources, and out-of-scope questions are correctly refused.
+
+---
+
+## 🔐 Security Considerations
+
+- **SSRF protection** — `/load` resolves the target host and rejects loopback, link-local (`169.254.x` incl. cloud metadata), and RFC-1918 private ranges, plus non-HTTP schemes. ([`app/security.py`](app/security.py))
+- **CORS allowlist** — the API only accepts browser requests from the configured `FRONTEND_ORIGIN`, not `*`.
+- **Local-only inference** — prompts and crawled content never leave the machine.
+- **Concurrency guard** — only one crawl/embed pipeline runs at a time.
+
+---
+
+## 🛠️ Engineering Notes & Design Decisions
+
+A few decisions worth calling out (several were found and fixed through end-to-end testing):
+
+- **Cosine, not L2.** ChromaDB defaults to L2 distance, and `nomic-embed-text` vectors are unnormalized — L2 distances landed in the *hundreds*, making any relevance threshold meaningless. The collection is created with `hnsw:space = cosine` so distances are bounded to `[0, 2]` and the threshold actually filters noise.
+- **Brotli-safe crawling.** `requests` can't decode `br` responses without an extra package; advertising it silently produced garbage text. The crawler only advertises encodings it can decode.
+- **Title-aware chunks.** Each chunk is prefixed with its page title and source URL, extracted *before* boilerplate stripping removes `<head>`.
+- **Dedup before embedding.** Repeated quotes/paragraphs across paginated pages are collapsed, which cuts embedding cost and stops near-duplicates from crowding the top-k.
+- **`k = 8`.** Author/bio pages are often semantically closer to a query than the page that holds the actual answer; a slightly larger `k` recovers recall while staying within the local model's context window.
+- **Lazy loading.** The vector store is loaded on demand so the API starts cleanly even before any site has been indexed.
+
+All retrieval knobs (`RETRIEVAL_K`, `MAX_DISTANCE`, chunk size/overlap, page limit) are configurable via `.env`.
+
+---
+
+## 📁 Project Structure
+
+```
+rag_chatbot/
+├── app/
+│   ├── crawler.py        # BFS crawler: fetch, clean, normalize, save
+│   ├── rag_pipeline.py   # chunk + dedupe + embed + ChromaDB + search
+│   ├── chat.py           # retrieve → prompt → LLM answer + sources
+│   ├── security.py       # SSRF guard (importable, tested)
+│   └── api.py            # Flask API: /load /progress /chat /health
+├── frontend/
+│   └── index.html        # self-contained glassmorphism UI (no build step)
+├── RAGChatbot/
+│   └── Default.aspx      # ASP.NET WebForms variant of the UI
+├── tests/                # pytest suite (URL, SSRF, dedup)
+├── docs/images/          # architecture diagram + screenshots
+├── config.py             # all settings, loaded from .env with defaults
+├── .env.example          # sample configuration
+└── requirements.txt
 ```
 
 ---
 
-## Performance
+## 🗺️ Roadmap
 
-| Metric         | Before Optimization | After Optimization |
-|----------------|--------------------|--------------------|
-| Response time  | 2 min 35 sec       | ~13 seconds        |
-| Chunks         | 26,844             | 2,724              |
-| Model          | qwen3:8b (5.2 GB)  | gemma3:4b (3.3 GB) |
-| Speed gain     | —                  | **12x faster**     |
-
----
-
-## Tested On
-
-| Website                  | Result |
-|--------------------------|--------|
-| quotes.toscrape.com      | ✅ Working |
-| home.iitd.ac.in          | ✅ Working |
+- [ ] Cross-encoder re-ranking for higher retrieval precision
+- [ ] Streaming token responses in the UI
+- [ ] Multi-site / persistent collections (switch between indexed sites)
+- [ ] Dockerfile + compose for one-command setup
+- [ ] CI workflow running the test suite on every push
 
 ---
 
-## Upcoming Features
+## 📄 License
 
-- Dynamic URL input from frontend (no re-crawl needed manually)
-- GPU acceleration for even faster responses
-- UI polish with loading spinner and response time display
-- IIS deployment for production
-- Support for IOCL Barauni and other industrial websites
+[MIT](LICENSE) © 2026 Shreya
 
----
-
-## Author
-
-Shreya — B.Tech Project, 2026
+<div align="center">
+<sub>Built with Ollama · ChromaDB · Flask — runs entirely on your machine.</sub>
+</div>
