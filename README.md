@@ -39,34 +39,55 @@ Everything runs **locally** via [Ollama](https://ollama.com/) — no API keys, n
 <img src="docs/images/architecture.svg" alt="Architecture diagram" width="900"/>
 </div>
 
-The system has two clear paths:
-
-- **Ingestion (`POST /load`)** — a BFS crawler fetches same-domain pages → text is cleaned and chunked (with page title/URL prepended for context) → duplicate chunks are dropped → chunks are embedded in parallel → stored in a persistent ChromaDB collection using **cosine** distance.
-- **Query (`POST /chat`)** — the question is embedded → ChromaDB returns the top-k nearest chunks (filtered by a distance threshold) → a grounded prompt is built → the local LLM produces an answer plus source URLs.
+| Component     | Technology                          |
+|---------------|-------------------------------------|
+| LLM           | Gemma3:4b via Ollama                |
+| Embeddings    | nomic-embed-text via Ollama         |
+| Vector Store  | ChromaDB                            |
+| Web Crawler   | BeautifulSoup + requests + tldextract |
+| API           | Flask + flask-cors                  |
+| Prod Server   | Waitress (WSGI)                     |
+| Config        | python-dotenv (`.env`)              |
+| Frontend      | ASP.NET WebForms (ASPX)             |
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| LLM | `gemma3:4b` via Ollama |
-| Embeddings | `nomic-embed-text` via Ollama |
-| Vector store | ChromaDB (persistent, cosine space) |
-| Crawler | requests + BeautifulSoup + lxml + tldextract |
-| API | Flask + flask-cors |
-| Prod server | Waitress (Windows-friendly WSGI) |
-| Config | python-dotenv (`.env`) |
-| Frontend | Static HTML/CSS/JS (+ ASP.NET WebForms variant) |
-| Tests | pytest |
+```
+rag_chatbot/
+│
+├── app/
+│   ├── crawler.py        # Crawls website, saves text files
+│   ├── rag_pipeline.py   # Chunks text, builds embeddings, stores in ChromaDB
+│   ├── chat.py           # Handles question → search → answer generation
+│   └── api.py            # Flask REST API (/load, /progress, /chat, /health)
+│
+├── data/                 # Crawled text files saved here (generated)
+├── chroma_db/            # ChromaDB vector store
+├── logs/                 # app.log, visited URLs, and error logs
+│
+├── config.py             # All settings, loaded from .env with defaults
+├── .env.example          # Sample environment configuration
+├── requirements.txt      # Python dependencies
+└── venv/                 # Virtual environment
+```
 
 ---
 
 ## 📸 Screenshots
 
-| Landing | In conversation |
-|---------|-----------------|
-| <img src="docs/images/demo-landing.jpg" width="360"/> | <img src="docs/images/demo-conversation.jpg" width="360"/> |
+- **Dynamic URL Loading** — Enter any URL in the frontend; the backend crawls + embeds it on the fly with live progress (no manual re-crawl)
+- **Web Crawler** — Crawls internal pages of any website, skips PDFs/images, MD5-hashed filenames to prevent collisions
+- **Smart Chunking** — Splits pages into 1000-char chunks (150 overlap), with page title/URL prepended for context
+- **Semantic Search** — Retrieves top-k relevant chunks with a distance threshold to filter out low-relevance matches
+- **Hallucination Guard** — Says "I don't have enough information" if answer not found in website
+- **Source Attribution** — Shows which URL the answer came from
+- **Fast Responses** — Model warmup at startup, parallelized embeddings, optimized chunk retrieval
+- **Security Hardening** — SSRF protection (blocks private/internal IPs) and CORS restricted to the frontend origin
+- **Configurable** — All settings via `.env` (python-dotenv); structured `logging` to console + rotating file
+- **Production-Ready** — Optional Waitress WSGI server (Windows-friendly)
+- **REST API** — Clean `/load`, `/progress`, `/chat`, and `/health` endpoints
 
 ---
 
@@ -93,33 +114,52 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. (Optional) Configure
+### Configure via `.env`
+Copy the sample and adjust as needed (real environment variables override these):
 ```bash
-cp .env.example .env      # tweak models, page limits, CORS origin, etc.
+cp .env.example .env
 ```
-All settings have sensible defaults, so a `.env` is optional for local use.
-
-### 4. Start the API
-```bash
-python -m app.api                 # Flask dev server on :5000
-# or set USE_WAITRESS=true in .env for the production server
+Key settings:
+```ini
+MAX_PAGES=50
+LLM_MODEL=gemma3:4b
+EMBED_MODEL=nomic-embed-text
+FRONTEND_ORIGIN=http://localhost:44300   # ASPX site origin (for CORS)
+USE_WAITRESS=false                       # true = production WSGI server
+LOG_LEVEL=INFO
 ```
+> All values have sensible defaults in `config.py`, so a `.env` is optional for local use. Be sure `FRONTEND_ORIGIN` matches the origin your ASPX site is served from, or CORS will block the browser.
 
-### 5. Open the frontend
+### Start the API
 ```bash
-python -m http.server 8090 --directory frontend
-# then visit http://localhost:8090
+# Dev server (Flask)
+python -m app.api
+
+# Production server (Waitress) — set USE_WAITRESS=true in .env, then:
+python -m app.api
 ```
 > Set `FRONTEND_ORIGIN=http://localhost:8090` in `.env` so CORS allows the page.
 > Point the UI at a non-default API with `?api=http://host:port`.
 
-Paste a URL → **Load Website** → ask away. 🎉
+### Load a Website
+There's no manual crawl step — start the API, open the frontend, paste a URL, and click **Load Website**. The backend crawls + embeds it and streams progress back to the UI. Then ask your questions.
+
+> The standalone `python -m app.crawler` / `python -m app.rag_pipeline` entry points still exist for offline/debug runs.
+
+### Run the Frontend
+Open the ASP.NET project in Visual Studio and press **F5**. The API endpoint is set via the `API_URL` constant at the top of the script in `Default.aspx`.
 
 ---
 
 ## 🔌 API Reference
 
-Base URL: `http://localhost:5000`
+| Method | Endpoint   | Description                                  |
+|--------|------------|----------------------------------------------|
+| GET    | /          | API status                                   |
+| GET    | /health    | Health check + model info                    |
+| POST   | /load      | Crawl + embed a website (`{"url": "..."}`); SSRF-guarded |
+| GET    | /progress  | Current pipeline status/percent for the UI   |
+| POST   | /chat      | Ask a question                               |
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -179,14 +219,10 @@ End-to-end behavior was verified manually against `quotes.toscrape.com`: load �
 
 A few decisions worth calling out (several were found and fixed through end-to-end testing):
 
-- **Cosine, not L2.** ChromaDB defaults to L2 distance, and `nomic-embed-text` vectors are unnormalized — L2 distances landed in the *hundreds*, making any relevance threshold meaningless. The collection is created with `hnsw:space = cosine` so distances are bounded to `[0, 2]` and the threshold actually filters noise.
-- **Brotli-safe crawling.** `requests` can't decode `br` responses without an extra package; advertising it silently produced garbage text. The crawler only advertises encodings it can decode.
-- **Title-aware chunks.** Each chunk is prefixed with its page title and source URL, extracted *before* boilerplate stripping removes `<head>`.
-- **Dedup before embedding.** Repeated quotes/paragraphs across paginated pages are collapsed, which cuts embedding cost and stops near-duplicates from crowding the top-k.
-- **`k = 8`.** Author/bio pages are often semantically closer to a query than the page that holds the actual answer; a slightly larger `k` recovers recall while staying within the local model's context window.
-- **Lazy loading.** The vector store is loaded on demand so the API starts cleanly even before any site has been indexed.
-
-All retrieval knobs (`RETRIEVAL_K`, `MAX_DISTANCE`, chunk size/overlap, page limit) are configurable via `.env`.
+- GPU acceleration for even faster responses
+- Response time display in the UI
+- IIS deployment for production
+- Support for IOCL Barauni and other industrial websites
 
 ---
 
