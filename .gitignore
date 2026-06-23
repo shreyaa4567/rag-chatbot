@@ -11,6 +11,20 @@ chroma_db/
 logs/*.txt
 logs/*.log
 
+# Generated crawl metadata (rebuilt on each load)
+data/metadata.json
+
+# Environment variables (keep .env.example tracked)
+.env
+
+# Local tooling / editor config
+.claude/
+
+# Python test / build caches
+.pytest_cache/
+build/
+*.egg-info/
+
 # Environment variables (keep .env.example tracked)
 .env
 
