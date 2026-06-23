@@ -37,6 +37,8 @@ Answer + Source URLs shown to user
 | Vector Store  | ChromaDB                            |
 | Web Crawler   | BeautifulSoup + requests + tldextract |
 | API           | Flask + flask-cors                  |
+| Prod Server   | Waitress (WSGI)                     |
+| Config        | python-dotenv (`.env`)              |
 | Frontend      | ASP.NET WebForms (ASPX)             |
 
 ---
@@ -50,13 +52,14 @@ rag_chatbot/
 │   ├── crawler.py        # Crawls website, saves text files
 │   ├── rag_pipeline.py   # Chunks text, builds embeddings, stores in ChromaDB
 │   ├── chat.py           # Handles question → search → answer generation
-│   └── api.py            # Flask REST API (/chat, /health)
+│   └── api.py            # Flask REST API (/load, /progress, /chat, /health)
 │
-├── data/                 # Crawled text files saved here
+├── data/                 # Crawled text files saved here (generated)
 ├── chroma_db/            # ChromaDB vector store
-├── logs/                 # Visited URLs and error logs
+├── logs/                 # app.log, visited URLs, and error logs
 │
-├── config.py             # All settings (URL, models, paths)
+├── config.py             # All settings, loaded from .env with defaults
+├── .env.example          # Sample environment configuration
 ├── requirements.txt      # Python dependencies
 └── venv/                 # Virtual environment
 ```
@@ -65,14 +68,17 @@ rag_chatbot/
 
 ## Features
 
-- **Web Crawler** — Crawls internal pages of any website, skips PDFs/images
-- **Smart Chunking** — Splits pages into 1000-char chunks with overlap
-- **Semantic Search** — Finds most relevant chunks for any question
+- **Dynamic URL Loading** — Enter any URL in the frontend; the backend crawls + embeds it on the fly with live progress (no manual re-crawl)
+- **Web Crawler** — Crawls internal pages of any website, skips PDFs/images, MD5-hashed filenames to prevent collisions
+- **Smart Chunking** — Splits pages into 1000-char chunks (150 overlap), with page title/URL prepended for context
+- **Semantic Search** — Retrieves top-k relevant chunks with a distance threshold to filter out low-relevance matches
 - **Hallucination Guard** — Says "I don't have enough information" if answer not found in website
 - **Source Attribution** — Shows which URL the answer came from
-- **Fast Responses** — Model warmup at startup, optimized chunk retrieval
-- **CORS Enabled** — Frontend and backend can run on different ports
-- **REST API** — Clean `/chat` and `/health` endpoints
+- **Fast Responses** — Model warmup at startup, parallelized embeddings, optimized chunk retrieval
+- **Security Hardening** — SSRF protection (blocks private/internal IPs) and CORS restricted to the frontend origin
+- **Configurable** — All settings via `.env` (python-dotenv); structured `logging` to console + rotating file
+- **Production-Ready** — Optional Waitress WSGI server (Windows-friendly)
+- **REST API** — Clean `/load`, `/progress`, `/chat`, and `/health` endpoints
 
 ---
 
@@ -97,38 +103,50 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Configure Target Website
-Edit `config.py`:
-```python
-TARGET_URL = "https://your-target-website.com/"
-MAX_PAGES  = 50
-LLM_MODEL  = "gemma3:4b"
-```
-
-### Run the Pipeline
+### Configure via `.env`
+Copy the sample and adjust as needed (real environment variables override these):
 ```bash
-# Step 1: Crawl the website
-python -m app.crawler
+cp .env.example .env
+```
+Key settings:
+```ini
+MAX_PAGES=50
+LLM_MODEL=gemma3:4b
+EMBED_MODEL=nomic-embed-text
+FRONTEND_ORIGIN=http://localhost:44300   # ASPX site origin (for CORS)
+USE_WAITRESS=false                       # true = production WSGI server
+LOG_LEVEL=INFO
+```
+> All values have sensible defaults in `config.py`, so a `.env` is optional for local use. Be sure `FRONTEND_ORIGIN` matches the origin your ASPX site is served from, or CORS will block the browser.
 
-# Step 2: Build embeddings
-python -m app.rag_pipeline
+### Start the API
+```bash
+# Dev server (Flask)
+python -m app.api
 
-# Step 3: Start Flask API
+# Production server (Waitress) — set USE_WAITRESS=true in .env, then:
 python -m app.api
 ```
 
+### Load a Website
+There's no manual crawl step — start the API, open the frontend, paste a URL, and click **Load Website**. The backend crawls + embeds it and streams progress back to the UI. Then ask your questions.
+
+> The standalone `python -m app.crawler` / `python -m app.rag_pipeline` entry points still exist for offline/debug runs.
+
 ### Run the Frontend
-Open the ASP.NET project in Visual Studio and press **F5**.
+Open the ASP.NET project in Visual Studio and press **F5**. The API endpoint is set via the `API_URL` constant at the top of the script in `Default.aspx`.
 
 ---
 
 ## API Endpoints
 
-| Method | Endpoint  | Description              |
-|--------|-----------|--------------------------|
-| GET    | /         | API status               |
-| GET    | /health   | Health check + model info |
-| POST   | /chat     | Ask a question           |
+| Method | Endpoint   | Description                                  |
+|--------|------------|----------------------------------------------|
+| GET    | /          | API status                                   |
+| GET    | /health    | Health check + model info                    |
+| POST   | /load      | Crawl + embed a website (`{"url": "..."}`); SSRF-guarded |
+| GET    | /progress  | Current pipeline status/percent for the UI   |
+| POST   | /chat      | Ask a question                               |
 
 ### Example Request
 ```json
@@ -170,9 +188,8 @@ POST /chat
 
 ## Upcoming Features
 
-- Dynamic URL input from frontend (no re-crawl needed manually)
 - GPU acceleration for even faster responses
-- UI polish with loading spinner and response time display
+- Response time display in the UI
 - IIS deployment for production
 - Support for IOCL Barauni and other industrial websites
 
