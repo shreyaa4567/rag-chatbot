@@ -1,8 +1,9 @@
 # Virtual environment
 venv/
 
-# Crawled content
+# Crawled content (generated at runtime)
 data/*.txt
+data/metadata.json
 
 # Chroma vector database
 chroma_db/
