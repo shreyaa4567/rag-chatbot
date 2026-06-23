@@ -77,7 +77,7 @@ def chat(question):
     if collection is None:
         raise RuntimeError("No website loaded yet. Please load a website first.")
 
-    results = search(question, collection, k=5)
+    results = search(question, collection)
 
     # Handle case where all results were filtered out by distance threshold
     if not results["documents"][0]:

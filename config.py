@@ -47,6 +47,15 @@ MAX_PAGES        = _get_int("MAX_PAGES", 50)
 DELAY_SECONDS    = _get_float("DELAY_SECONDS", 1.0)
 REQUEST_TIMEOUT  = _get_int("REQUEST_TIMEOUT", 10)
 
+# ─── RETRIEVAL SETTINGS ───────────────────────────────────────────────────────
+# Number of chunks to retrieve per query. 8 gives better recall than 5 when
+# semantically-similar-but-unhelpful pages (e.g. author bios) crowd the top
+# results, while staying small enough for the local LLM's context window.
+RETRIEVAL_K      = _get_int("RETRIEVAL_K", 8)
+# Max cosine distance (0=identical, 2=opposite) for a chunk to be considered
+# relevant. The collection uses cosine space, so this is in the [0, 2] range.
+MAX_DISTANCE     = _get_float("MAX_DISTANCE", 1.0)
+
 # ─── OLLAMA MODELS ────────────────────────────────────────────────────────────
 LLM_MODEL        = os.getenv("LLM_MODEL", "gemma3:4b")
 EMBED_MODEL      = os.getenv("EMBED_MODEL", "nomic-embed-text")

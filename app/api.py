@@ -1,18 +1,16 @@
 # app/api.py
 
 import os
-import socket
 import shutil
 import logging
-import ipaddress
 import threading
-from urllib.parse import urlparse
 
 import config
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from app.chat import chat, reload_collection, init as init_chat, is_ready
+from app.security import is_safe_url
 
 logger = logging.getLogger(__name__)
 
@@ -33,48 +31,6 @@ _progress = {
     "message"  : "",
     "url"      : ""
 }
-
-# ─── SSRF PROTECTION ──────────────────────────────────────────────────────────
-
-def is_safe_url(url):
-    """Reject URLs that resolve to private/internal addresses (SSRF guard).
-
-    Blocks localhost, link-local (169.254.x.x), and the RFC 1918 private
-    ranges (10.x, 172.16–31.x, 192.168.x) as well as other reserved/
-    loopback addresses. Returns (ok: bool, reason: str).
-    """
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https"):
-        return False, "Only http and https URLs are allowed."
-
-    host = parsed.hostname
-    if not host:
-        return False, "URL has no host."
-
-    try:
-        # Resolve every address the host maps to and check them all.
-        infos = socket.getaddrinfo(host, None)
-    except socket.gaierror:
-        return False, "Could not resolve host."
-
-    for info in infos:
-        addr = info[4][0]
-        try:
-            ip = ipaddress.ip_address(addr)
-        except ValueError:
-            continue
-        if (
-            ip.is_private
-            or ip.is_loopback
-            or ip.is_link_local
-            or ip.is_reserved
-            or ip.is_multicast
-            or ip.is_unspecified
-        ):
-            return False, "URL points to a private or internal address."
-
-    return True, ""
-
 
 def get_progress_snapshot():
     """Return a thread-safe copy of the current progress."""
@@ -181,13 +137,23 @@ def run_pipeline(url):
         import time
         time.sleep(1)
 
-        for folder in [config.DATA_DIR, config.LOG_DIR]:
-           if os.path.exists(folder):
-             shutil.rmtree(folder)
-           os.makedirs(folder)
+        # Reset crawled data (safe — nothing holds these files open).
+        if os.path.exists(config.DATA_DIR):
+            shutil.rmtree(config.DATA_DIR)
+        os.makedirs(config.DATA_DIR, exist_ok=True)
 
-        if not os.path.exists(config.CHROMA_DIR):
-           os.makedirs(config.CHROMA_DIR)
+        # Clear only the per-crawl log files. We must NOT rmtree LOG_DIR:
+        # the logging RotatingFileHandler holds app.log open, and on Windows
+        # deleting an in-use file raises WinError 32, breaking the pipeline.
+        os.makedirs(config.LOG_DIR, exist_ok=True)
+        for log_file in (config.VISITED_LOG, config.ERROR_LOG):
+            try:
+                if os.path.exists(log_file):
+                    os.remove(log_file)
+            except OSError:
+                logger.warning("Could not clear log file %s", log_file)
+
+        os.makedirs(config.CHROMA_DIR, exist_ok=True)
 
         # ── Step 2: Crawl ──
         set_progress(percent=5, message="Crawling website...")
