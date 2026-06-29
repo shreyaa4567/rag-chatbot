@@ -16,7 +16,6 @@ tldextract==5.3.1        # registered-domain matching for same-site crawl
 # RAG / vector store / LLM
 chromadb==1.5.9
 ollama==0.6.2            # local LLM + embeddings client
-langchain-text-splitters==1.1.2   # RecursiveCharacterTextSplitter
 
 # Config
 python-dotenv==1.2.2

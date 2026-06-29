@@ -43,7 +43,7 @@ def _get_float(name, default):
 TARGET_URL = os.getenv("TARGET_URL", "https://home.iitd.ac.in/")
 
 # ─── CRAWLER SETTINGS ─────────────────────────────────────────────────────────
-MAX_PAGES        = _get_int("MAX_PAGES", 50)
+MAX_PAGES        = _get_int("MAX_PAGES", 150)
 DELAY_SECONDS    = _get_float("DELAY_SECONDS", 1.0)
 REQUEST_TIMEOUT  = _get_int("REQUEST_TIMEOUT", 10)
 

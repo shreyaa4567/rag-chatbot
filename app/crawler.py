@@ -76,11 +76,17 @@ def clean_text(soup):
                      "aside", "header", "form", "iframe", "noscript"]):
         tag.decompose()
 
-    # Remove elements with common boilerplate CSS classes/IDs/roles
+    # Remove elements with common boilerplate CSS classes/IDs/roles. This
+    # strips navigation, headers, footers, cookie bars, accessibility widgets,
+    # "back to top" buttons, etc. before any text is extracted.
     boilerplate_patterns = [
         "sidebar", "breadcrumb", "cookie", "banner", "menu",
         "social", "share", "widget", "popup", "modal", "advert",
-        "newsletter", "signup", "toolbar", "pagination"
+        "newsletter", "signup", "toolbar", "pagination",
+        "accessib", "a11y", "skip-link", "skiplink", "screenreader",
+        "screen-reader", "scroll-top", "scrolltop", "back-to-top",
+        "backtotop", "gototop", "navbar", "topbar", "site-header",
+        "site-footer", "mega-menu", "offcanvas",
     ]
     # NOTE: decomposing a parent nulls its descendants' .attrs. Since those
     # descendants are still in this list, skip any element already removed
@@ -98,25 +104,46 @@ def clean_text(soup):
         if any(pattern in elem_id for pattern in boilerplate_patterns):
             element.decompose()
 
-    # Extract text from content-bearing tags
-    content_tags = ["p", "span", "div", "li", "td", "th",
-                    "h1", "h2", "h3", "h4", "h5", "h6",
-                    "blockquote", "article", "section"]
+    # Extract text in document order, preserving section structure. Headings
+    # are emitted as Markdown lines ("## Title") so the chunker can split on
+    # them; paragraph-like tags carry the body text. Container tags (div/
+    # section/article) are only read when they are "leaves" (hold no block
+    # children), which avoids emitting a parent's text and then its children's
+    # text again as duplicates.
+    HEADINGS   = ("h1", "h2", "h3", "h4", "h5", "h6")
+    TEXT_TAGS  = ("p", "li", "td", "th", "blockquote", "dd", "dt", "figcaption")
+    CONTAINERS = ("div", "section", "article", "main")
+    BLOCK_DESC = HEADINGS + TEXT_TAGS + CONTAINERS + ("ul", "ol", "table")
+
     blocks = []
-    seen = set()  # Deduplicate repeated text (e.g. nav items that survived)
-    for tag in soup.find_all(content_tags):
-        text = tag.get_text(separator=" ").strip()
-        if len(text) > 30 and text not in seen:
-            blocks.append(text)
-            seen.add(text)
+    seen   = set()  # Deduplicate repeated text within a page (e.g. nav leftovers)
+    for tag in soup.find_all(HEADINGS + TEXT_TAGS + CONTAINERS):
+        # Skip non-leaf containers; their block children are captured directly.
+        if tag.name in CONTAINERS and tag.find(BLOCK_DESC):
+            continue
+        text = " ".join(tag.get_text(separator=" ").split())
+        if not text:
+            continue
+        if tag.name in HEADINGS:
+            level = int(tag.name[1])
+            block = f"{'#' * level} {text}"
+            if block in seen:
+                continue
+        else:
+            if len(text) < 30:
+                continue
+            block = text
+            if block in seen:
+                continue
+        seen.add(block)
+        blocks.append(block)
 
     if blocks:
-        combined = "\n\n".join(blocks)
-    else:
-        combined = soup.get_text(separator=" ")
+        return "\n\n".join(blocks)
 
-    lines = [line.strip() for line in combined.splitlines()]
-    lines = [line for line in lines if line]
+    # Fallback: nothing structured found — return flattened text.
+    combined = soup.get_text(separator=" ")
+    lines = [line.strip() for line in combined.splitlines() if line.strip()]
     return "\n\n".join(lines)
 
 def get_page_title(soup):
