@@ -82,11 +82,18 @@ def clean_text(soup):
         "social", "share", "widget", "popup", "modal", "advert",
         "newsletter", "signup", "toolbar", "pagination"
     ]
+    # NOTE: decomposing a parent nulls its descendants' .attrs. Since those
+    # descendants are still in this list, skip any element already removed
+    # (attrs becomes None) to avoid an AttributeError on deeply-nested pages.
     for element in soup.find_all(True, attrs={"class": True}):
-        classes = " ".join(element.get("class", [])).lower()
+        if not element.attrs:
+            continue
+        classes = " ".join(element.get("class") or []).lower()
         if any(pattern in classes for pattern in boilerplate_patterns):
             element.decompose()
     for element in soup.find_all(True, attrs={"id": True}):
+        if not element.attrs:
+            continue
         elem_id = (element.get("id") or "").lower()
         if any(pattern in elem_id for pattern in boilerplate_patterns):
             element.decompose()
@@ -255,7 +262,18 @@ def crawl(start_url, progress_callback=None):
 
             time.sleep(0.2)
 
+    # Always persist metadata (even empty) so downstream steps never hit a
+    # missing-file error; they can react to an empty list instead.
+    save_metadata(metadata)
+
     logger.info("Crawl complete! Pages crawled: %d", page_count)
+
+    if page_count == 0:
+        raise RuntimeError(
+            f"No pages could be crawled from {start_url}. The site may block "
+            f"automated requests, require JavaScript to render, or be "
+            f"unreachable. Try a different URL."
+        )
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 

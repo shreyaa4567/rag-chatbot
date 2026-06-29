@@ -42,6 +42,11 @@ def load_documents():
     documents = []
     metadata  = []
 
+    if not os.path.exists(config.METADATA_FILE):
+        logger.warning("No metadata file at %s — nothing was crawled.",
+                       config.METADATA_FILE)
+        return documents, metadata
+
     with open(config.METADATA_FILE, "r", encoding="utf-8") as f:
         meta_list = json.load(f)
 
