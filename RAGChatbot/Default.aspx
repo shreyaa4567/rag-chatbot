@@ -1,3 +1,11 @@
+<%--
+  NOTE: This is an ASP.NET WebForms content fragment, NOT a standalone project.
+  It only contains the <asp:Content> block and expects a surrounding WebForms
+  project (Site.Master with a "MainContent" placeholder, web.config, codebehind).
+  To use it: paste into an existing WebForms project, or just use the
+  self-contained frontend/index.html instead (no .NET required).
+  If you do use this page, update API_URL below to match your Flask API origin.
+--%>
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />

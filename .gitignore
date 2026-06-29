@@ -11,6 +11,7 @@ chroma_db/
 # Generated logs
 logs/*.txt
 logs/*.log
+logs/*.out
 
 # Generated crawl metadata (rebuilt on each load)
 data/metadata.json
@@ -26,9 +27,6 @@ data/metadata.json
 build/
 *.egg-info/
 
-# Environment variables (keep .env.example tracked)
-.env
-
 # Python cache
 __pycache__/
 *.pyc
@@ -40,4 +38,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# One-off debug script (not part of the app)
 diagnostic.py

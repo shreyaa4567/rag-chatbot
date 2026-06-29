@@ -149,6 +149,10 @@ There's no manual crawl step — start the API, open the frontend, paste a URL, 
 ### Run the Frontend
 Open the ASP.NET project in Visual Studio and press **F5**. The API endpoint is set via the `API_URL` constant at the top of the script in `Default.aspx`.
 
+> **Two frontends ship with this repo:**
+> - **`frontend/index.html`** (recommended) — self-contained, zero build. Open it directly or serve it as shown above. Override the API target with `?api=http://host:port`.
+> - **`RAGChatbot/Default.aspx`** — an **ASP.NET WebForms snippet**, *not* a standalone Visual Studio project. It's just the `<asp:Content>` fragment; to run it you must paste it into an existing WebForms project (it needs the surrounding `.csproj`, `web.config`, codebehind, and master page). Most users should use `frontend/index.html` instead. If you do use the ASPX page, edit its hardcoded `const API_URL = "http://localhost:5000"` to match your API, and set `FRONTEND_ORIGIN` in `.env` to the IIS Express origin your site is served from, or the browser will block the call via CORS.
+
 ---
 
 ## 🔌 API Reference
@@ -239,7 +243,7 @@ rag_chatbot/
 ├── frontend/
 │   └── index.html        # self-contained glassmorphism UI (no build step)
 ├── RAGChatbot/
-│   └── Default.aspx      # ASP.NET WebForms variant of the UI
+│   └── Default.aspx      # ASP.NET WebForms snippet (paste into an existing WebForms project; not standalone)
 ├── tests/                # pytest suite (URL, SSRF, dedup)
 ├── docs/images/          # architecture diagram + screenshots
 ├── config.py             # all settings, loaded from .env with defaults
